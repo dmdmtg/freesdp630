@@ -1,0 +1,191 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_OPEN 3N "630 Network Development Package" "\&"
+.SH NAME
+t_open \- establish a transport endpoint
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_open(path, oflag, info)
+.br
+.B char *path;
+.br
+.B int oflag;
+.br
+.B struct t_info *info;
+
+.SH DESCRIPTION
+.I t_open
+must be called as the first step in the initialization of a
+transport endpoint.
+This function establishes a transport endpoint by opening a
+particular transport provider (i.e.
+network device) and returning a descriptor that
+identifies that endpoint.
+For example, opening the network device
+.I /dev/starlan
+identifies an AT&T StarLAN 10 connection-oriented transport layer protocol
+as the transport provider.
+.PP
+.I path
+points to the name of the network device to open.
+.PP
+.I t_open
+returns a descriptor that will be used by all subsequent TLI functions
+to identify the particular local transport endpoint. By default,
+a transport endpoint is opened in the synchronous mode, unless the
+O_NDELAY flag is specified by the \fIoflag\fR argument, then the
+transport endpoint is opened in the asynchronous mode.
+.PP
+This function also returns various default characteristics of
+the underlying transport protocol 
+by setting fields in the \f2t_info\f1 structure.
+This argument points to a \f2t_info\f1 which contains the following
+members:
+.PP
+.nf
+long addr;	/* max size of the transport protocol address */
+.br
+long options;	/* max number of bytes of protocol-specific options */
+.br
+long tsdu;	/* max size of a transport service data unit (\s-1TSDU\s+1) */
+.br
+long etsdu;	/* max size of an expedited transport service data unit (\s-1ETSDU\s+1) */
+.br
+long connect;	/* max amount of data allowed on connection establishment functions */
+.br
+long discon;	/* max amount of data allowed on \f2t_snddis\f1 and \f2t_rcvdis\f1 functions */
+.br
+long servtype;	/* service type supported by the transport provider */
+.fi
+.PP
+The values of the fields have the following meanings:
+.TP 14
+\f2addr\f1
+A value greater than or equal to zero indicates the maximum
+size of a transport protocol address; a value of \-1 specifies
+that there is no limit on the address size; and a value of -2
+specifies that the transport provider does not provide user
+access to transport protocol addresses.
+.TP
+\f2options\f1
+A value greater than or equal to zero indicates the maximum
+number of bytes of protocol-specific options supported by the
+provider; a value of \-1 specifies that there is no limit on the
+option size; and a value of \-2 specifies that the transport provider
+does not support user-settable options.
+.TP
+\f2tsdu\f1
+A value greater than zero specifies
+the maximum size of a transport service
+data unit (\s-1TSDU\s+1);
+a value of zero specifies that the
+transport provider does not support the concept of
+\s-1TSDU\s+1,
+although it does support the sending of a data stream with no
+logical boundaries preserved across a connection;
+a value of \-1 specifies that there is no limit on the size of a
+\s-1TSDU\s+1;
+and a value of \-2 specifies that the transfer of normal data is
+not supported by the transport provider.
+.TP
+\f2etsdu\f1
+A value greater than zero specifies
+the maximum size of an expedited transport
+service data unit (\s-1ETSDU\s+1);
+a value of zero specifies that the
+transport provider does not support the concept of \s-1ETSDU\s+1,
+although it does support the sending of an expedited data stream with no
+logical boundaries preserved across a connection;
+a value of \-1 specifies that there is no limit on the size of an
+\s-1ETSDU\s+1;
+and a value of \-2 specifies that the transfer of expedited data is
+not supported by the transport provider.
+.TP
+\f2connect\f1
+A value greater than or equal to zero specifies
+the maximum amount of data that may be associated with
+connection establishment functions;
+a value of \-1 specifies that there is no limit on the amount of data
+sent during connection establishment;
+and a value of \-2 specifies that the transport provider does not
+allow data to be sent with connection establishment functions.
+.TP
+\f2discon\f1
+A value greater than or equal to zero specifies
+the maximum amount of data that may be associated with the
+.I t_snddis
+and
+.I t_rcvdis
+functions;
+a value of \-1 specifies that there is no limit on the amount of data
+sent with these abortive release functions;
+and a value of \-2 specifies that the transport provider does not
+allow data to be sent with the abortive release functions.
+.TP
+\f2servtype\f1
+This field specifies the service type supported by the transport provider,
+as described below.
+.LE
+.PP
+If a transport user is concerned with protocol independence, the above
+sizes may be accessed to determine how large the buffers must be
+to hold each piece of information.
+Alternatively, the
+.I t_alloc
+function may be used to allocate these
+buffers.
+An error will result if a transport user exceeds the allowed
+data size on any function.
+.PP
+The
+.I servtype
+field of
+.I info
+may specify one of the following values on return:
+.TP 14
+\s-1T_COTS\s+1
+The transport provider supports a connection-mode service but
+does not support the optional orderly release facility.
+.TP
+\s-1T_COTS_ORD\s+1
+The transport provider supports a connection-mode service with
+the optional orderly release facility.
+.TP
+\s-1T_CLTS\s+1
+The transport provider supports a connectionless-mode service.
+For this service type,
+.I t_open
+will return \-2 for
+.IR etsdu ,
+.IR connect ,
+and
+.IR discon .
+.PP
+A single transport endpoint may support only one of the above
+services at one time.
+.PP
+If
+.I info
+is set to
+\s-1NULL\s0
+by the transport user, no protocol information is
+returned by
+.IR t_open .
+.P
+On failure, \f2t_errno\f1 may be set to the following:
+.TP 20
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+fcntl(3N).
+.SH DIAGNOSTICS
+\f2t_open\f1 returns a valid file descriptor on success
+and \-1 on failure and \f2t_errno\f1 is set to indicate the error.
+.Ee

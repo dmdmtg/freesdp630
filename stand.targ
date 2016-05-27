@@ -1,0 +1,23 @@
+#       Copyright (c) 1987 AT&T   
+#       All Rights Reserved       
+
+#       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+#       The copyright notice above does not evidence any     
+#       actual or intended publication of such source code.  
+
+# @(#)stand.targ	1.1.1.2	(5/12/87)
+
+### Standard Targets ###
+
+build:		$(PRODUCTS)
+
+install:	$(INSTALL)
+
+# some systems cannot take rm -f of nothing so add "xx" in case variable empty
+clean:
+		rm -f xx $(CLEAN)
+
+clobber:	clean
+		rm -f xx $(CLOBBER)
+
+### Additional Dependencies ###

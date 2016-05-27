@@ -1,0 +1,391 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH STARLAN 4N "630 Network Development Package" "\\&"
+.SH NAME
+/dev/starlan \- StarLAN network driver, connection mode.
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B fd = t_open ("/dev/starlan", oflag, info);
+.SH DESCRIPTION
+.I /dev/starlan
+is the network driver that implements the AT&T StarLAN Network
+connection mode protocol. This protocol is based on the Open Systems Interconnect
+(OSI) model and currently supports the International Standards
+Organization (ISO) protocol suite up through the OSI transport
+layer (layer 4). The transport for
+.I /dev/starlan
+is based on ISO 8073 which provides virtual circuit transport
+service with flow control and error detection and recovery.
+.PP
+The 630 MTG's Transport Layer Interface (TLI) [see \fIintro\fR(3N)]
+is supported on top of the OSI transport to allow access to the
+transport capabilities from 630 networking applications.
+.PP
+The
+.I /dev/starlan
+network driver is available from a 630 MTG expansion card, the AT&T
+StarLAN 10 Terminal Network Access Unit (NAU). The Terminal NAU is
+installed into the memory expansion slot of the 630 terminal, and
+allows the terminal to access a 10 Mb/s version of the AT&T StarLAN
+network through unshielded twisted-pair wire.
+.PP
+Although the call formats and arguments of the TLI functions are
+the same for all TLI network devices, there are some parameters
+that are dependent of the specific driver and its implementation.
+The following are the parameters that pertain to 
+.I /dev/starlan
+as implemented in the StarLAN 10 Terminal NAU.
+
+.SS Transport Characteristics
+The transport characteristics of \fI/dev/starlan\fR can be found
+by supplying a pointer to a \fIt_info\fR structure as argument
+to \fIt_open\fR(3N) or \fIt_getinfo\fR(3N). 
+The following table has a summary of those characteristics.
+Refer to the manual page of \fIt_getinfo\fR
+for a description of the meaning of the values.
+.PP
+.TS
+center box ;
+cB s
+cB | cB
+l | n .
+Transport Characteristics
+_
+Member	Value
+=
+addr	55
+options	56
+tsdu	-1
+etsdu	16	
+connect	32
+discon	64
+servtype	1 (T_COTS)
+.TE
+
+.SS Transport Protocol Address
+A transport endpoint is known locally in the networking application
+by its transport endpoint descriptor, \fIfd\fR. However, for 
+the purpose of communicating with other nodes on the network, a transport
+endpoint is known by its protocol address. For example, if a transport
+endpoint offers a service, network-wide clients can call up this
+service by specifying the protocol address of the transport endpoint
+[see \fIt_connect\fR(3N)]. The representation of a transport
+endpoint by a protocol address starts with the binding process
+[see \fIt_bind\fR(3N)].
+.PP
+A protocol address can be a string of ASCII characters; in this case,
+the protocol address is said to be specified by a Logical Name.
+A protocol address can also be specified by an array of octets
+which represents the complete network address of the transport
+endpoint and consists of a Transport Selector (T-Selector) and
+a Network Service Access Point (NSAP) address; in this case,
+the protocol address is said to be specified by a Transport Address.
+.PP
+The use of the Transport Address occurs during the binding process
+if the given Logical Name representing a service is not unique in the
+network, or no Logical Name is specified (the \fIreq\fR argument of
+\fIt_bind\fR is \s-1NULL\s+1).
+.PP
+The protocol address is represented by the \fInetbuf\fR structure
+[see \fIintro\fR(3N)] with the 
+\fIlen\fR field specifying the number of bytes in the address and
+the \fIbuf\fR field
+pointing to the buffer containing the address.  The form of the address buffer
+depends on the type of the protocol address.
+.PP
+If the protocol address is a Logical Name,
+the size of the address buffer must be at least 1 and at most 32,
+and the first element of the address buffer (\fIbuf\fR[0]) must 
+\fBnot\fR contain the value 0x00.
+.PP
+If the protocol address is a Transport Address,
+the address buffer is an array of \fIn\fR octets, where
+\fIn > 0\fR and \fIn <= 55\fR. The last number is the same
+as the value of the \fIaddr\fR field of a \fIt_info\fR structure (see the
+\s-1\fBTransport Characteristics\s+1\fR table above).
+The first element of this array, \fIbuf\fR[0], must
+contain the value 0x00. \fIbuf\fR[1] contains the value, \fIi\fR, which indicates
+the T-Selector length. The T-Selector is given by \fIbuf\fR[2] through
+\fIbuf\fR[\fIi\fR+1]. \fIbuf\fR[\fIi\fR+2] contains the value, \fIj\fR, which
+indicates the NSAP length.
+The NSAP is given by \fIbuf\fR[\fIi\fR+3] through \fIbuf\fR[\fIi\fR+\fIj\fR+2].
+.PP
+.TS
+center box ;
+cB s
+c s
+l | l .
+Transport Address Format
+(0 <= i <= 32; 0 <= j <= 20)
+_
+0	0x00
+1	T-Selector length = i
+2 ... i+1	T-Selector
+i+2	NSAP length = j
+i+3 ... i+j+2	NSAP
+.TE
+.PP
+Since a protocol address may be a Logical Name or a
+Transport Address depending on the circumstance,
+the following routine will generate
+a T-Selector as a NULL terminated string independent of the form.
+.PP
+.RS 3
+.nf
+.ft CW
+t_selector(addr, buf)
+struct netbuf addr;
+char *buf;	/* Points to char array able to hold 33 chars */
+{
+	char *p;
+	int len;
+
+	if (*addr.buf == '\\0') {	/* Transport Address */
+		p = addr.buf+2;
+		len = *(addr.buf+1);
+	}
+	else {				/* Logical Name */
+		p = addr.buf;
+		len = addr.len;
+	}
+	memcpy(buf, p, len);
+	*(buf + len) = '\\0';
+}
+.ft R
+.fi
+.RE
+
+.SS Transport Protocol Options
+Transport protocol options can be retrieved, verified, or
+negotiated through the TLI function call, \fIt_optmgmt\fR(4N).
+.PP
+For the
+.I /dev/starlan
+network driver, \fIt_optmgmt\fR must only be called when the transport
+endpoint is in the T_IDLE state.
+.PP
+The \fIt_optmgmt\fR structure [see \fIt_optmgmt\fR(4N)] contains
+two fields: the \fIopt\fR field identifies the protocol options and 
+the \fIflags\fR field is used
+to specify the action to take with those options (T_NEGOTIATE,
+T_CHECK or T_DEFAULT).
+.PP
+The protocol options are represented by a \fInetbuf\fR structure
+[see \fIintro\fR(3N)] where \fIopt.buf\fR is a pointer to a structure of the form:
+.PP
+.RS 3
+.nf
+.ft CW
+#include <dmdslanusr.h>
+
+struct sl_t_opts {
+	unsigned long options;
+	long gos_option;
+	long tsdu_option;
+	unsigned char group_option[16];
+	unsigned long bcast_option;
+	struct TKOPTIONS tk_opts;
+	struct TKPARAMS tk_params;	/* Added for 630 MTG */
+	};
+.ft R
+.fi
+.RE
+.PP
+The \fIsl_t_opts\fR structure is defined in \fBdmdslanusr.h\fR.
+.PP
+The following bit positions can be set in the \fIoptions\fR field
+of the \fIsl_t_opts\fR structure:
+.TP 15
+\s-1U_GROUP_OPTION\s+1
+When used in conjunction with T_NEGOTIATE, allows the user to
+bind on the group name specified in \fIgroup_option\fR.
+The group name must be padded out to 16 characters with spaces.
+The name specified in \fIgroup_option\fR cannot be used by
+anyone else on the network as a unique name but can be added
+by anyone as a group name. When a group name is used with connection mode transport
+endpoints, client applications trying to connect to this group name
+will establish a virtual circuit with the first transport endpoint that responds
+to the connection request.
+.TP
+\s-1U_BCAST_OPTION\s+1
+This option is not available to \fI/dev/starlan\fR [see \fIstarlandg\fR(4N)].
+.TP
+\s-1U_TK_OPTION\s+1
+Manages the transport options as specified by the \fITKOPTIONS\fR
+structure defined in \fBdmdslanusr.h\fR.
+.TP
+\s-1U_TK_PARAMS\s+1
+Manages additional transport options as specified by
+the \fITKPARAMS\fR structure defined in \fBdmdslanusr.h\fR.
+Although the \fITKPARAMS\fR structure can be negotiated via \fIt_optmgmt\fR,
+the transport provider will not indicate the negotiated values
+in the \fIopt\fR field after calls to \fIt_connect\fR or \fIt_listen\fR.
+.PP
+When managing transport options via the U_TK_OPTION or U_TK_PARAMS,
+the default values should first be retrieved using the T_DEFAULT flag.
+The T_NEGOTIATE flag can then be used to modify the default values.
+The following 630 networking application illustrates the use of option
+management to enable transport level checksums.
+.PP
+.RS 3
+.nf
+.ft CW
+#include <dmd.h>
+#include <dmdtiuser.h>
+#include <dmderrno.h>
+#include <dmdslanusr.h>
+
+#define MAXBUF	1024
+char buf[MAXBUF];
+
+main()
+{
+	request(KBD);
+	opt_demo();
+	lprintf("\\nHit key to exit\\n");
+	wait(KBD);
+	kbdchar();
+}
+
+
+opt_demo()
+{
+	extern char *t_alloc();
+	int fd;
+
+	struct t_info info;
+	struct t_call *call;
+
+	struct t_optmgmt *topt;
+	U_OPTIONS *opts;
+
+	lprintf("open starlan\\n");
+	if ((fd = t_open("/dev/starlan",0,&info)) == -1) {
+		lprintf("t_open failed\\n");
+		return;
+	}
+	lprintf("t_open ok\\n");
+	lprintf("size of protocol address = %ld\\n",info.addr);
+	lprintf("size of protocol options = %ld\\n",info.options);
+	lprintf("size of max. tsdu = %ld\\n",info.tsdu);
+	lprintf("size of expedited tsdu = %ld\\n",info.etsdu);
+	lprintf("max. data on connect = %ld\\n",info.connect);
+	lprintf("max. data on disconnect = %ld\\n",info.discon);
+	lprintf("provider service type = %ld\\n",info.servtype);
+
+	if (t_bind (fd, (struct t_bind *)0, (struct t_bind *)0) == -1) {
+		lprintf("t_bind failed\\n");
+		t_close(fd);
+		return;
+	}
+	lprintf("t_bind ok\\n");
+
+	if ((topt = (struct t_optmgmt *)t_alloc(fd, T_OPTMGMT, T_OPT))
+		  == (struct t_optmgmt *)0) {
+		lprintf("t_alloc failed!\\n");
+		cleanup (fd);
+		return;
+	}
+	topt->flags = T_DEFAULT;
+	lprintf("getting default options\\n");
+	if (t_optmgmt (fd, topt, topt) == -1) {
+		lprintf("t_optmgmt failed\\n");
+		cleanup(fd);
+		return;
+	}
+	opts = (U_OPTIONS *)topt->opt.buf;
+	lprintf("default checksum %s\\n",
+	opts->tk_opts.chksum ? "enabled" : "disabled");
+	opts->options = U_TK_OPTION;
+	opts->tk_opts.chksum = 1;
+	topt->flags = T_NEGOTIATE;
+
+	lprintf("negotiating options\\n");
+	if (t_optmgmt (fd, topt, topt) == -1) {
+		lprintf("t_optmgmt failed\\n");
+		cleanup(fd);
+		return;
+	}
+	lprintf("negotiated checksum %s\\n",
+	opts->tk_opts.chksum ? "enabled" : "disabled");
+
+	if ((call = (struct t_call *)t_alloc(fd, T_CALL, T_ALL))
+		  == (struct t_call *)0) {
+		lprintf("t_alloc failed!\\n");
+		cleanup (fd);
+		return;
+	}
+	memcpy(call->addr.buf,"foo",3);
+	call->addr.len = 3;
+	lprintf("calling foo\\n");
+
+	if (t_connect(fd, call, call) < 0) {
+		lprintf("t_connect failed\\n");
+		cleanup (fd);
+		return;
+	}
+	lprintf("connect!\\n");
+
+	opts = (U_OPTIONS *)call->opt.buf;
+	lprintf("after connect checksum %s\\n",
+	opts->tk_opts.chksum ? "enabled" : "disabled");
+
+	lprintf("sending 1k of data\\n");
+
+	t_snd(fd, buf, MAXBUF, 0);
+	sleep(60);
+
+	lprintf("sending disconnect\\n");
+
+	if (t_snddis (fd, (struct t_call *)0) < 0) {
+		lprintf("t_snddis failed\\n");
+		cleanup (fd);
+		return;
+	}
+	lprintf("disconnect sent\\n");
+
+	cleanup (fd);
+	lprintf("ALL DONE!\\n");
+}
+
+
+cleanup (fd)
+int fd;
+{
+        lprintf("cleanup: t_unbind %d\\n", fd);
+	if (t_unbind (fd) < 0) {
+		lprintf("cleanup: t_unbind failed\\n");
+	}
+	lprintf("cleanup: t_close %d\\n", fd);
+	if (t_close (fd) < 0) {
+		lprintf("cleanup: t_close failed\\n");
+	}
+}
+.ft R
+.fi
+.RE
+
+.SH FILES
+dmdtiuser.h
+.br
+dmdslanusr.h
+
+.SH SEE ALSO
+intro(3N), t_bind(3N), t_open(3N), t_optmgmt(3N).
+.br
+starlandg(4N).
+.br
+\fIAT&T StarLAN 10 Network, Terminal NAU User's Guide\fR.
+.br
+\fIAT&T StarLAN Network Software Technical Reference Manual\fR.
+.br
+\fIAT&T StarLAN Network Application Programmer's Reference Manual\fR.
+.br
+\fIUNIX System V Network Programmer's Guide\fR.

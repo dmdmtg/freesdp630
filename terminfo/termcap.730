@@ -1,0 +1,26 @@
+730|att730|730MTG|AT&T 730 windowing terminal:\
+	:am:da:db:es:hs:mi:ms:xn:xo:bs:pt:\
+	:co#80:li#60:kn#6:\
+	:AL=\E[%dL:DC=\E[%dP:DL=\E[%dM:DO=\E[%dB:IC=\E[%d@:\
+	:LE=\E[%dD:RI=\E[%dC:UP=\E[%dA:ae=^O:al=\E[L:as=^N:\
+	:bt=\E[Z:cd=\E[J:ce=\E[K:cl=\E[H\E[J:cm=\E[%i%d;%dH:\
+	:cs=\E[%i%d;%dr:dc=\E[P:dl=\E[M:ei=\E[4l:fs=\E8:\
+	:ho=\E[H:\
+	:i1=\E[8;0|\E[?3;4;5;13;15l\E[13;20l\E[?7h\E[12h\E(B\E)B:\
+	:im=\E[4h:is=\E[0m^O:k1=\EOc:k2=\EOd:k3=\EOe:k4=\EOf:\
+	:k5=\EOg:k6=\EOh:k7=\EOi:k8=\EOj:k9=\ENo:kb=\b:\
+	:kd=\E[B:kh=\E[H:kl=\E[D:kr=\E[C:ku=\E[A:nd=\E[C:\
+	:r2=\Ec\E[?3l:rc=\E8:sc=\E7:se=\E[27m:so=\E[7m:sr=\EM:\
+	:ts=\E7\E[;%i%dx:ue=\E[24m:up=\E[A:us=\E[4m:\
+	:vb=200\E[?5h\E[?5l:ve=\E[?25h\E[?12l:vi=\E[?25l:\
+	:vs=\E[?12;25h:nl=\E[B:ko=bt,do,nd,up,ho,al:
+730-41|att730-41|730MTG-41|AT&T 730-41 windowing terminal:\
+	:li#41:tc=730:
+730-24|att730-24|730MTG-24|AT&T 730-24 windowing terminal:\
+	:li#24:tc=730:
+730r|att730r|730MTGr|AT&T 730 rev video windowing terminal:\
+	:i1=\E[8;0|\E[?3;4;13;15l\E[?5h\E[13;20l\E[?7h\E[12h\E(B\E)B:tc=730:
+730r-41|att730r-41|730MTG-41r|AT&T 730r-41 rev video windowing terminal:\
+	:li#41:tc=730r:
+730r-24|att730r-24|730MTGr-24|AT&T 730r-24 rev video windowing terminal:\
+	:li#24:tc=730r:

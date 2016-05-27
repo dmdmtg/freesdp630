@@ -1,0 +1,143 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_SND 3N "630 Network Development Package" "\&"
+.SH NAME
+t_snd \- send data or expedited data over a connection
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_snd(fd, buf, nbytes, flags)
+.br
+.B int fd;
+.br
+.B char *buf;
+.br
+.B unsigned int nbytes;
+.br
+.B int flags;
+.SH DESCRIPTION
+This function is used to send either normal or expedited data.
+.I fd
+identifies the local transport endpoint over which data should be sent,
+.I buf
+points to the user data,
+.I nbytes
+specifies the number of bytes of user data to be sent, and
+.I flags
+specifies any optional flags described below.
+.PP
+By default,
+.I t_snd
+operates in synchronous mode and may wait if flow control restrictions
+prevent the data from being accepted by the local transport provider at
+the time the call is made.
+However, if \s-1O_NDELAY\s0 is set (via
+.I t_open
+or
+.IR fcntl ),
+.I t_snd
+will execute in asynchronous mode, and will fail immediately if there
+are flow control restrictions.
+.PP \"bl86-19533
+Even when there are no flow control restrictions, \f2t_snd\f1
+will wait if \s-1STREAMS\s+1 internal resources are not available,
+regardless of the state of \s-1O_NDELAY\s+1.
+.PP
+On successful completion,
+.I t_snd
+returns the number of bytes accepted by the transport provider.
+Normally this will equal the number of bytes specified in
+.IR nbytes .
+However, if \s-1O_NDELAY\s0 is set, it is possible that only part of
+the data will be accepted by the transport provider.
+In this case, \f2t_snd\f1 will set \s-1T_MORE\s0 for the data that was
+sent (see below) and will return a value less than
+.IR nbytes .
+If \f2nbytes\f1 is zero, no data will be passed to the provider and
+\f2t_snd\f1 will return zero.
+.PP
+If \s-1T_EXPEDITED\s+1 is set in
+.IR flags ,
+the data will be sent as expedited data, and will be subject to the
+interpretations of the transport provider.
+.PP
+If \s-1T_MORE\s+1 is set in
+.IR flags ,
+or is set as described above, an indication is sent to the transport provider that the transport service
+data unit (\s-1TSDU\s+1) or expedited transport service data unit (\s-1ETSDU\s+1) is being sent through multiple
+.I t_snd
+calls.
+Each
+.I t_snd
+with the \s-1T_MORE\s+1 flag set indicates that another
+.I t_snd
+will follow with more data for the current \s-1TSDU\s+1.
+The end of the \s-1TSDU\s+1 (or \s-1ETSDU\s+1) is identified by a
+.I t_snd
+call with the \s-1T_MORE\s+1 flag not set.
+Use of \s-1T_MORE\s0
+enables a user to break up large logical data units without losing
+the boundaries of those units at the other end of the connection.
+The flag implies nothing about how the data is
+packaged for transfer below the transport interface.
+If the transport provider does not support the concept of a \s-1TSDU\s+1
+as indicated in the
+.I info
+argument on return from
+.I t_open
+or
+.IR t_getinfo ,
+the \s-1T_MORE\s+1 flag is not meaningful and should be ignored.
+.PP
+The size of each \s-1TSDU\s+1 or \s-1ETSDU\s+1 must not exceed the limits of the
+transport provider as returned by
+.I t_open
+or
+.IR t_getinfo .
+If the size is exceeded, a \s-1TSYSERR\s+1 with system error \s-1EPROTO\s+1 will occur.
+However, the \f2t_snd\f1 may not fail because \s-1EPROTO\s+1 errors may not be reported immediately.
+In this case, a subsequent call that accesses the transport endpoint will fail with the associated \s-1TSYSERR\s+1.
+.P
+If
+.I t_snd
+is issued from the
+.SM T_IDLE
+state, the provider may silently discard the data.
+If
+.I t_snd
+is issued from any state other than \s-1T_DATAXFER\s+1, \s-1T_INREL\s+1 or \s-1T_IDLE\s+1,
+the provider will generate a \s-1TSYSERR\s+1 with system error \s-1EPROTO\s+1 (which may be reported in the manner described above).
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 20
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TFLOW]\s+1
+\s-1O_NDELAY\s0
+was set, but
+the flow control mechanism prevented the transport provider from
+accepting data at this time.
+.TP
+\s-1[TNOTSUPPORT]\s+1
+This function is not supported by the underlying transport
+provider.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has been detected during execution of this function.
+.SH SEE ALSO
+fcntl(3N), t_open(3N), t_rcv(3N).
+.SH DIAGNOSTICS
+On successful completion,
+.I t_snd
+returns the number of bytes accepted by the transport provider,
+and it returns \-1 on failure and
+.I t_errno
+is set to indicate the error.
+.Ee

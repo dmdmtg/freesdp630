@@ -1,0 +1,142 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_RCVCONNECT 3N "630 Network Development Package" "\&"
+.SH NAME
+t_rcvconnect \- receive the confirmation from a connect request
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_rcvconnect(fd, call)
+.br
+.B int fd;
+.br
+.B struct t_call *call;
+.SH DESCRIPTION
+This function enables a calling transport user to determine
+the status of a previously sent connect request
+and is used in conjunction with
+.I t_connect
+to establish a connection in asynchronous mode.
+The connection will be established on successful completion of
+this function.
+.PP
+\f2fd\f1
+identifies the local transport endpoint where communication will be
+established,
+and
+\f2call\f1
+contains information associated with the newly established connection.
+.I Call
+points to a \f2t_call\f1 structure which contains the following members:
+.PP
+.RS
+struct netbuf addr;
+.br
+struct netbuf opt;
+.br
+struct netbuf udata;
+.br
+int sequence;
+.RE
+.PP
+\f2netbuf\f1 is described in \f2intro\f1(3N).
+In
+.IR call ,
+.I addr
+returns the protocol address associated with the responding
+transport endpoint,
+.I opt
+presents any protocol-specific information associated with the connection,
+.I udata
+points to optional user data that may be returned by
+the destination transport user during connection establishment,
+and
+.I sequence
+has no meaning for this function.
+.PP
+The
+.I maxlen
+[see \f2netbuf\f1 in \f2intro\f1(3N)] field of each argument
+must be set before issuing this function to indicate the maximum
+size of the buffer for each.
+However,
+.I call
+may be \s-1NULL\s+1, in which case no information is given to
+the user on return from
+.IR t_rcvconnect .
+By default,
+.I t_rcvconnect
+executes in synchronous mode and
+waits for the connection to be established before returning.
+On return, the
+.IR addr ,
+.IR opt ,
+and
+.I udata
+fields reflect values associated with the connection.
+.PP
+If
+\s-1O_NDELAY\s0
+is set (via
+.I t_open
+or
+.IR fcntl ),
+.I t_rcvconnect
+executes in asynchronous mode, and
+reduces to a poll for existing connect confirmations.
+If none are available, \f2t_rcvconnect\f1 fails and returns immediately
+without waiting for the connection to be established.
+(See \s-1TNODATA\s+1 below.)
+.I t_rcvconnect
+must be re-issued
+at a later time to complete the connection establishment phase and
+retrieve the information returned in
+.IR call .
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 20
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TBUFOVFLW]\s+1
+The number of bytes allocated for an incoming argument is not
+sufficient to store the value of that argument
+and the connect information to be returned in
+.I call
+will be discarded.
+The provider's state, as seen by the user, will be changed
+to \s-1DATAXFER\s+1.
+.TP
+\s-1[TNODATA]\s+1
+\s-1O_NDELAY\s0
+was set, but a connect confirmation has not yet arrived.
+.TP
+\s-1[TLOOK]\s+1
+An asynchronous event has occurred on this transport connection and requires
+immediate attention.
+.TP
+\s-1[TNOTSUPPORT]\s+1
+This function is not supported by the underlying transport
+provider.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+intro(3N),
+fcntl(3N),
+t_accept(3N),
+t_bind(3N),
+t_connect(3N),
+t_listen(3N),
+t_open(3N).
+.SH DIAGNOSTICS
+.I t_rcvconnect
+returns 0 on success and \-1 on failure and
+\f2t_errno\f1 is set to indicate the error.
+.Ee

@@ -1,0 +1,74 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_LOOK 3N "630 Network Development Package" "\&"
+.SH NAME
+t_look \- look at the current event on a transport endpoint
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_look(fd)
+.br
+.B int fd;
+.SH DESCRIPTION
+This function returns the current event
+on the transport endpoint specified by
+.IR fd .
+This function enables a transport provider to notify a transport user of an
+asynchronous event when the user is issuing functions in synchronous mode.
+Certain events require immediate notification of the user and are indicated
+by a specific error, \s-1TLOOK\s+1, on the current or next function to
+be executed.
+.P
+This function also enables a transport user to poll a transport endpoint
+periodically for asynchronous events.
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 15
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+t_open(3N).
+.SH DIAGNOSTICS
+Upon success,
+.I t_look
+returns a value that indicates which of the allowable
+events has occurred, or returns zero if no event exists.
+One of the following events is returned:
+.TP 19
+\s-1T_LISTEN\s+1
+connection indication received
+.TP
+\s-1T_CONNECT\s+1
+connect confirmation received
+.TP
+\s-1T_DATA\s+1
+normal data received		
+.TP
+\s-1T_EXDATA\s+1
+expedited data received	
+.TP
+\s-1T_DISCONNECT\s+1
+disconnect received
+.TP
+\s-1T_ERROR\s+1
+fatal error indication	 
+.TP
+\s-1T_UDERR\s+1
+datagram error indication	
+.TP
+\s-1T_ORDREL\s+1
+orderly release indication
+.PP
+On failure, \-1 is returned and
+.I t_errno
+is set to indicate the error.
+.Ee

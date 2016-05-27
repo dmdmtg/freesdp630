@@ -1,0 +1,201 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH INTRO 3N "630 Network Development Package" "\&"
+.SH NAME
+intro \- introduction to the 630 MTG networking capability
+
+.SH DESCRIPTION
+This section describes the functions that make up the 630 MTG's
+\fBlibnsl_s\fR library which supports the Transport Level Interface (TLI)
+to networking and also contains other miscellaneous functions related to
+networking in the 630 environment.
+.PP
+With the advent of networking I/O expansion boards for the 630 MTG
+(such as the StarLAN 10 Terminal NAU), 630 applications have another
+way to reach out to the outside world, besides through the standard
+630 I/O functions (\fIsendchar\fR, \fIrcvchar\fR, etc.) supplied with the 630
+Software Development Package. This method is through networking,
+with the 630 application acting as a network client or server, and the
+correspondent assuming the other role. The correspondent session resides
+in a node on the network, and this node can be a host computer, a personal computer,
+a workstation, another 630 terminal or even the same 630 terminal.
+.PP
+630 networking applications are developed by using the
+development tools of the
+630 Software Development Package. To access the TLI networking features,
+however, these applications need to be compiled with the 
+\fB#include\fR files and the additional \fBlibnsl_s\fR library supported
+by the 630 Network Development Package. 
+This library is not automatically
+loaded by the 630 MTG C compiler, \fIdmdcc\fR; use of the \fB-l\fR 
+(and \fB-L\fR if needed) option to \fIdmdcc\fR is required [see \fIdmdcc\fR(1)
+and \fImc68ld\fR(1)]. For example, if the \fBlibnsl_s\fR library has been
+installed in the standard \fIdmdcc\fR library search path (i.e. $DMD/lib),
+a networking application, say \fIprog.c\fR, can be compiled as follows:
+.PP
+.RS 3
+.nf
+.ft CW
+dmdcc prog.c -lnsl_s
+.ft R
+.fi
+.RE
+.PP
+If the \fBlibnsl_s\fR library is not installed in $DMD/lib, but in some
+other directory, say in $MYLIB, the networking application
+\fIprog.c\fR has to be compiled as follows:
+.PP
+.RS 3
+.nf
+.ft CW
+dmdcc prog.c -L $MYLIB -lnsl_s
+.ft R
+.fi
+.RE
+.PP
+If the \fB#include\fR files are not installed in the standard search
+path of \fIdmdcc\fR (i.e. $DMD/include), but in some other directory,
+say in $MYINC, the above program \fIprog.c\fR
+has to be compiled as follows:
+.PP
+.RS 3
+.nf
+.ft CW
+dmdcc -I $MYINC prog.c -L $MYLIB -lnsl_s
+.ft R
+.fi
+.RE
+.PP
+After being developed in a host computer, 
+630 networking applications are
+downloaded into the 630 terminal
+for execution
+through the use of the 630 MTG downloader, \fIdmdld\fR(1).
+When in the terminal, the
+630 networking applications retain all the capabilities of standard
+630 applications (such as mouse, keyboard interfaces), even the
+standard (\fIxt\fR or non-\fIxt\fR)
+I/O connection used for the download. The difference is that
+630 networking applications can communicate through networking by
+making calls to the functions in the \fBlibnsl_s\fR library.
+
+.SH TRANSPORT LAYER INTERFACE
+The Transport Layer Interface (TLI)
+supported by the 630 Network Development Package (NDP) is an
+adaptation of the UNIX\*(Tm System V's TLI feature. Working knowledge
+of this transport interface can be found in the \fIUNIX System V
+Network Programmer's Guide\fR.
+.PP
+The 630 NDP's \fBlibnsl_s\fR supports the \fInetbuf\fR structure.
+This structure is used to send and receive data and information
+in various TLI functions.
+It contains the following members:
+.RS 6
+.PP
+unsigned int maxlen;
+.br
+unsigned int len;
+.br
+char	\(**buf;
+.RE
+.PP
+\f2buf\f1 points to a user input and/or output buffer.
+.I len
+generally specifies the number of bytes contained in the buffer.
+If the structure is used for both input and output, the function
+will replace the user value of \f2len\f1 on return. 
+.PP
+.I maxlen
+generally has significance only when \f2buf\f1 is used to receive output
+from the TLI function.
+In this case, it specifies the physical size of the buffer, the maximum
+value of \f2len\f1 that can be set by the function.
+If
+.I maxlen
+is not large enough to hold the returned information, an \s-1TBUFOVFLW\s0 error
+will generally result.
+However, certain functions may return part of the data and not generate an error.
+.PP
+While most of
+the 630's TLI functions offer basically the same functionality
+as of the ones in the UNIX environment, there is a noticeable
+difference.
+The concept of a file subsystem is not defined in the 630 environment,
+therefore, \fIstdin\fR, \fIstdout\fR and \fIstderr\fR are not 
+available. This is the reason that the function \fIt_error\fR
+which writes to \fIstderr\fR is not defined in the 630 NDP.
+
+.SH NETWORK DRIVERS
+Section \fB4N\fR has the description of various network drivers
+supported in the 630 environment. 630 MTG network drivers represent
+networking protocols, and are implemented using a modified
+version of the UNIX System V Release 3 STREAMS mechanism.
+The 630 Transport Layer Interface provides transparent access to
+the underlying STREAMS mechanism. In addition to indirect access
+to STREAMS via TLI calls, the 630 NDP provides direct access to
+STREAMS through the \fIfcntl\fR(3N) and \fIpoll\fR(3N) function
+calls.
+.PP
+Information about the STREAMS concept can be found in
+the \fIUNIX System V STREAMS Primer\fR.
+.PP
+The manual pages in section \fB3N\fR describe the functions
+in generic terms. Specific information pertaining to individual
+network drivers can be found in the manual page of that driver
+in section \fB4N\fR.
+
+.SH NETWORK XT
+For 630 applications that communicate with a host through
+the standard 630 I/O functions (\fIsendchar\fR, \fIrcvchar\fR, etc.),
+the I/O performance can be improved if the connection is
+over a networking medium instead of regular serial ports.
+.PP
+The \fIxt/layers\fR environment is supported over network connections
+when the 630 MTG is connected to a host computer which
+is either running UNIX System V Release 4 or later, or running
+UNIX System V Release 3.2 with the STREAMS XT Windowing Utilities
+package installed. 
+.PP
+The 630 NDP's \fBlibnsl_s\fR supports the \fIflowcontrol\fR(3N) function. This
+function can be used to increase data transfer throughput for applications
+which transfer large quantities of data in the \fIxt/layers\fR environment
+running over a network connection.
+
+.SH SEE ALSO
+dmdcc(1), dmdld(1), mc68ld(1) in the \fI630 MTG Software Reference Manual\fR
+.br
+\fIUNIX System V Network Programmer's Guide\fR
+.br
+\fIUNIX System V STREAMS Primer\fR
+.br
+layers(1) in the \fIUNIX System V System User's Reference Manual\fR
+
+.SH WARNINGS
+The \fBlibnsl_s\fR library is compiled with the Programming Environment
+Identification (PEID) number set to 3. The PEID scheme [see \fIdmdcc\fR(1)
+and \fIdmdld\fR(1)] prevents the download of 630 applications that make
+use of libraries not supported by older versions of 630 firmware. Specifically,
+the \fBlibnsl_s\fR library is supported by 630 MTG firmwares version 8;8;7 ROMS
+or later; 630 terminals with older firmware versions (e.g. 8;8;6 ROMS) have
+to be upgraded in order to run 630 networking applications. 
+.P
+630 applications that use the \fBlibnsl_s\fR library can be downloaded from
+an AT&T 3B2 host computer (or other computers with the same byte ordering
+method) using any version of the 630 MTG downloader, \fIdmdld\fR. In order
+to download the same applications from an AT&T 6386 WSG (or other computers
+with the same byte ordering method), version 2.0 or later of the 630 MTG downloader
+is needed; otherwise the terminal will reject the download due to
+an incorrect PEID checking in the older versions of the downloader.
+.P
+Version 2.0 of \fIdmdld\fR is released with this 630 Network Development Package.
+If this version of the downloader (use the \fI-V\fR option) is not available
+on your machine, and the diagnostic output (use the \fI-d\fR option)
+indicates that the download has been rejected due to an incorrect PEID checking,
+the use of the \fI-f\fR flag is recommended to circumvent the problem
+until an upgrade to \fIdmdld\fR is available on your machine.

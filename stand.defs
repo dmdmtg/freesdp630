@@ -1,0 +1,42 @@
+#       Copyright (c) 1987 AT&T   
+#       All Rights Reserved       
+
+#       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+#       The copyright notice above does not evidence any     
+#       actual or intended publication of such source code.  
+
+# @(#)stand.defs	1.1.1.2	(5/12/87)
+
+### Standard Defines ###
+
+DMD=/usr/local/630
+DEFDMD=$(DMD)
+DMDSYS=$(DMD)
+DMDBIN=$(DMD)/bin
+DMDLIB=$(DMD)/lib
+DMDSRC=$(DMD)/src
+DMDINC=$(DMD)/include
+DMDSYSINC=$(DMDSYS)/include
+MCC=$(DMD)/bin/dmdcc
+MAS=$(DMD)/bin/mc68as
+MLD=$(DMD)/bin/mc68ld
+MAR=$(DMD)/bin/mc68ar
+MSTRIP=$(DMD)/bin/mc68strip
+MLORDER=$(DMD)/bin/mc68lorder
+MDIS=$(DMD)/bin/mc68dis
+MODE755=755
+MODE644=644
+# EXTRACFLAGS is options for unix commands
+#  and MCFLAGS is for 630 downloadables
+EXTRACFLAGS=-O
+MCFLAGS=-O
+
+MAKE_ARGS=	$(MFLAGS) DMD="$(DMD)" DEFDMD="$(DEFDMD)" DMDSYS="$(DMDSYS)" \
+		DMDBIN="$(DMDBIN)" DMDLIB="$(DMDLIB)" \
+		DMDINC="$(DMDINC)" DMDCCSINC="$(DMDCCSINC)" \
+		CC="$(CC)" MCC="$(MCC)" MAR="$(MAR)" MSTRIP="$(MSTRIP)" \
+		MLORDER="$(MLORDER)" MODE755="$(MODE755)" MODE644="$(MODE644)" \
+		MCFLAGS="$(MCFLAGS)" EXTRACFLAGS="$(EXTRACFLAGS)"
+
+### Specific Defines ###
+

@@ -1,0 +1,63 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_RCVREL 3N "630 Network Development Package" "\&"
+.SH NAME
+t_rcvrel \- acknowledge receipt of an orderly release indication
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_rcvrel (fd)
+.br
+.B int fd;
+.SH DESCRIPTION
+This function is used to acknowledge receipt of
+an orderly release indication.
+.I fd
+identifies the local transport endpoint where the connection exists.
+After receipt of this indication, the user may not attempt to
+receive more data because such an attempt will block forever.
+However, the user may continue to send data over the connection if
+.I t_sndrel
+has not been issued by the user.
+.PP
+This function is an optional service of the transport provider,
+and is only supported if the transport provider returned service
+type
+\s-1T_COTS_ORD\s0
+on
+.I t_open
+or
+.IR t_getinfo .
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 20
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TNOREL]\s+1
+No orderly release indication currently exists on the specified
+transport endpoint.
+.TP
+\s-1[TLOOK]\s+1
+An asynchronous event has occurred on this transport endpoint and requires
+immediate attention.
+.TP
+\s-1[TNOTSUPPORT]\s+1
+This function is not supported by the underlying transport
+provider.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+t_open(3N), t_sndrel(3N).
+.SH DIAGNOSTICS
+.I t_rcvrel
+returns 0 on success and \-1 on failure
+\f2t_errno\f1 is set to indicate the error.
+.Ee

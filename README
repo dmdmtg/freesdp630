@@ -1,0 +1,22 @@
+This 630 MTG software development package works on both Suns and System V.
+First install the pseudo-tty based layers into your chosen directory.  You
+can then install this package on top of it into the same target directory
+or in a different directory (it works easier if they're together).  If you
+plan to use xcip, xproof, or some other tools that need troff fonts, you
+will also want to install the lib/xfont files from the tc630 package into
+$DMD/font.
+
+To compile and install this package, use
+
+	make DMD=<your chosen install directory> install
+
+To make the default DMD be something other than the directory you are
+installing in, add "DEFDMD=<default DMD>" to the make command.
+For example, do something like
+	make DMD=/usr/local/630.new DEFDMD=/usr/local/630 install
+and copy /usr/local/630.new to /usr/local/630 when you're ready.
+
+If layers is installed in a different directory than this package, you must
+also specify the "DMDSYS" make variable to point to that directory.
+
+- Dave Dykstra, 3/25/94

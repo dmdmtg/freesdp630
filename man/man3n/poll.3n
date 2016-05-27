@@ -1,0 +1,151 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH POLL 3N "630 Network Development Package" "\&"
+.SH NAME
+poll \- \s-1STREAMS\s0 input/output multiplexing
+.SH SYNOPSIS
+.B #include <dmdpoll.h>
+.PP   
+.B int poll (fds, nfds, timeout)
+.br
+.B struct pollfd fds[];
+.br
+.B unsigned long nfds;
+.br
+.B int timeout;
+
+.SH DESCRIPTION
+\f2poll\f1 provides users with a mechanism for multiplexing input/output
+over a set of transport endpoints that reference open \f2streams\f1 [see \f2intro\f1(3N)].
+\f2poll\f1 identifies those \f2streams\f1 on which a user can send or
+receive messages, or on which certain events have occurred.
+.P
+\f2fds\f1 specifies the transport endpoints to be examined and the 
+events of interest for each transport endpoint.
+It is a pointer to an array with one element for each
+open transport endpoint of interest.
+The array's elements are \f2pollfd\f1 structures which contain
+the following members:
+.sp .5
+.ta .5i 1.75i
+.nf
+	\f(CWint fd;	/* transport endpoint */
+	short events;	/* requested events */
+	short revents;	/* returned events */\f1
+.fi
+.sp .5
+where \f2fd\f1 specifies an open transport endpoint and
+\f2events\f1 and \f2revents\f1 are bitmasks constructed by or-ing
+any combination of the following event flags:
+.TP 13
+.SM POLLIN
+A non-priority message is present on the \f2stream head\f1 read
+queue. This flag is set even if the message is of zero length.
+In \f2revents\f1, this flag is mutually exclusive with \s-1POLLPRI\s+1.
+.TP
+.SM POLLPRI
+A  high priority message is at the front of the \f2stream head\f1 read queue.
+This flag is set even if the message is of zero length.
+In \f2revents\f1, this flag is mutually exclusive with \s-1POLLIN\s+1.
+.TP
+.SM POLLOUT
+The first downstream write queue in the \f2stream\f1 is not full.
+Priority control messages can be sent at any time.
+.TP
+.SM POLLERR
+An error message has arrived at the \f2stream head\f1.
+This flag is only valid in the \f2revents\f1 bitmask;
+it is not used in the \f2events\f1 field.
+.TP
+.SM POLLHUP
+A hangup has occurred on the \f2stream\f1.
+This event and \s-1POLLOUT\s+1 are mutually exclusive;
+a \f2stream\f1 can never be writable if a hangup has occurred.
+However, this event and \s-1POLLIN\s+1 or \s-1POLLPRI\s+1 are not mutually exclusive.
+This flag is only valid in the \f2revents\f1 bitmask;
+it is not used in the \f2events\f1 field.
+.TP
+.SM POLLNVAL
+The specified \f2fd\f1 value does not belong to an open \f2stream\f1.
+This flag is only valid in the \f2revents\f1 field;
+it is not used in the \f2events\f1 field.
+.PP
+For each element of the array pointed to by \f2fds\f1,
+\f2poll\f1 examines the given transport endpoint for the
+event(s) specified in \f2events\f1.
+The number of transport endpoints to be examined is specified by \f2nfds\f1.
+If \f2nfds\f1 exceeds \fB128\fR, the limit on transport endpoints
+on the 630 MTG, \f2poll\f1 will fail.
+.PP
+If the value \f2fd\f1 is less than zero, \f2events\f1 is ignored and \f2revents\f1
+is set to 0 in that entry on return from \f2poll\f1 .
+.P
+The results of the \f2poll\f1 query are stored in the
+\f2revents\f1 field in the \f2pollfd\f1 structure.
+Bits are set in the \f2revents\f1 bitmask to indicate
+which of the requested events are true.
+If none are true, none of the specified bits is
+set in \f2revents\f1 when the \f2poll\f1 call returns.
+The event flags \s-1POLLHUP\s+1, \s-1POLLERR\s+1, and \s-1POLLNVAL\s+1 are always 
+set in \f2revents\f1 if the conditions they indicate are true; this
+occurs even though these flags were not present in \f2events\f1.
+.P
+If none of the defined events have occurred on any selected transport endpoint,
+\f2poll\f1 waits at least \f2timeout\f1 ticks, where a tick is 1/60th of
+a second [see \fIrealtime\fR(3R)] for an event to occur
+on any of the selected transport endpoints.
+If the value \f2timeout\f1 is 0, \f2poll\f1 returns immediately.
+If the value of \f2timeout\f1 is -1,
+\f2poll\f1 blocks until a requested event occurs or
+until the call is interrupted.
+\f2poll\f1 is not affected by the \s-1O_NDELAY\s+1 flag [see \fB\s-1NOTES\fR\s+1].
+.P
+\f2poll\f1 fails if one or more of the following are true:
+.TP 13
+.SM [EAGAIN]
+Allocation of internal data structures failed but request should
+be attempted again.
+.TP
+.SM [EFAULT]
+Some argument points outside the allocated address space.
+.TP
+.SM [EINTR]
+A signal was caught during the \f2poll\f1 system call.
+.TP
+.SM [EINVAL]
+The argument \f2nfds\f1 is less than zero, or \f2nfds\f1 is greater
+than \fB128\fR.
+.SH "SEE ALSO"
+intro(3N)
+.br
+realtime(3R), resources(3R) in the \fI630 MTG Software Reference Manual\fR
+.br
+\f2UNIX System V \s-1STREAMS\s0 Programmer's Guide\f1.
+.SH DIAGNOSTICS
+Upon successful completion,
+a non-negative value is returned.
+A positive value indicates the total number of transport endpoints
+that has been selected
+(i.e., transport endpoints for which the \f2revents\f1 field is
+non-zero).
+A value of 0 indicates that
+the call timed out and no transport endpoints have been selected.
+Upon failure, a value of \-1 is returned and \f2errno\f1
+is set to indicate the error.
+.SH NOTES
+\fIpoll\fR will unblock if a 630 resource is requested and that resource
+becomes available [see \fIresources\fR(3R), and note that some resources
+such as SEND and RCV are implicitly requested].
+For example, if a 630
+application has requested the keyboard, \fIpoll\fR will return when
+a character is available. Thus, \fIpoll\fR will not preempt other 630
+resources.
+.Ee
+
+

@@ -1,0 +1,158 @@
+#ident	"@(#)pkg.ccs:makefile	1.9"
+#	MC68000 SGS MASTER MAKEFILE
+###############################################################################
+# NOTICE: You should really only edit ../makefile, there is nothing in here
+# that needs to be altered.
+###############################################################################
+#	This is the master makefile for building the MC68000 SGS.
+# You may select options for the entire SGS from within this makefile.
+# You should be VERY CAREFUL if you invoke a make in a directory below
+# this one. You should only change DMD and/or DEFDMD and nothing else.
+###############################################################################
+DMD=/usr/local/630
+
+#	DEFDMD	specifies the default DMD directory that generated programs
+#		will use if the $DMD variable is not set.
+DEFDMD=$(DMD)
+
+#	SGS	specifies the name prefix for each of the built tools.
+#		For example, if SGS=mc68, all of the tool names are
+#		prefixed by "mc68", as in "mc68as", "mc68cc", etc.
+SGS=mc68
+
+#	BASE	specifies the root directory node for the SGS source
+#		structure.
+# relative to the bottom levels
+BASE=../..
+
+#	BINDIR	specifies the absolute directory into which the makefile
+#		places the executable tools it builds. 
+BINDIR=$(DMD)/bin
+
+#	LIBDIR	specifies the absolute directory into which the makefile
+#		places other executable tools and libraries.
+LIBDIR=$(DMD)/lib
+
+#	USRINC	is the directory where may be found include files that
+#		usually reside in /usr/include on native-mode UNIX SGSs
+#		to support building the SGS tools (but not the libraries).
+USRINC=$(BASE)/inc/common
+
+#	ARCH	declares the byte ordering of the host processor:
+#			AR32W	for 3B20S (and native MC68000)
+#			AR32WR	for VAX
+#		This is determined dynamically by the archtst
+#		program. Of course, the assignment can be overridden
+#		on the command line.
+ARCH=`$(BASE)/archtst`
+
+#	ARFORMAT
+#		defines the archive format:
+#			OLDAR	pre-5.0 archive
+#			PORT5AR	portable random access (5.0) archive
+#			PORTAR	portable ascii header (6.0) archive
+ARFORMAT=-DPORTAR
+
+#	INTSIZE	defines the MC68000 default integer size.  You may choose,
+#		at the time you build the compiler, whether the C language
+#		int is 16- or 32-bits.  Set INTSIZE to "INT16BIT" for
+#		16-bit integers, or to "INT32BIT" for 32-bit integers.
+##############################################################################
+#		NOTE: the 630 USES INT16BIT ONLY
+##############################################################################
+INTSIZE=INT16BIT
+
+#	FLEX	declares whether the SGS supports "flexnames" --
+#		arbitrary length names in C, assembly language,
+#		ar, etc.  FLEX=  for non-flexnames and
+#		FLEX=-DFLEXNAMES to turn on flexnames.  With
+#		FLEXNAMES enabled, you can still force the compiler
+#		to truncate names to 8 characters with the SGScc -T
+#		option.
+FLEX=-DFLEXNAMES
+
+#	NOTE:  To get the equivalent of a UNIX 5.0 (System V) SGS,
+#		choose ARFORMAT=PORT5AR and FLEX= .
+#		You will also have to include the MC68000 magic
+#		number among those that the 5.0 ar recognizes
+#		and build it, rather than this SGS's ar, as the
+#		ar for the SGS.
+
+#	LIBLD	is the path to the library containing a.out access
+#		routines.
+LIBLD= $(BASE)/libld/mc68/libld.a
+
+AR=	ar
+CC=	cc
+LINT=	lint
+MAKE=	make
+YACC=	yacc
+EXTRACFLAGS= -O
+CFLAGS=	$(EXTRACFLAGS)
+LDFLAGS=
+LFLAGS=	-abch
+LARGS = LINT="$(LINT)" LFLAGS="$(LFLAGS)"
+
+OBJECT=libld ar as lorder convert cpp compress dis dmdcc dump inc ld list nm \
+		optim pcc2 size strip 
+
+#	all	makes the sgs compiler 
+#
+#	build	makes the sgs compiler, installs it. Then makes the libs
+#		and installs them.
+#
+#	install	installs all the binaries
+#
+#	clean	deletes all object files 
+#
+#	first	creates BINDIR, LIBDIR, if they don't already exist.
+#
+#	libs	makes the library files. the sgs compiler must be installed
+
+MODE755=755
+MODE644=644
+MAKE_ARGS= $(MFLAGS) SGS="$(SGS)" BASE="$(BASE)" \
+	LFLAGS="$(LFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	BINDIR="$(BINDIR)" LIBDIR="$(LIBDIR)" CC="$(CC)" \
+	MODE755="$(MODE755)" MODE644="$(MODE644)" \
+	DEFLIST="-D$(INTSIZE)" ARFORMAT="$(ARFORMAT)" FLEX=$(FLEX) \
+	USRINC="$(USRINC)" LIBLD="$(LIBLD)" DMD="$(DMD)" ARCH=$(ARCH) \
+	EXTRACFLAGS="$(EXTRACFLAGS)" DEFDMD="$(DEFDMD)"
+
+all:		archtst $(OBJECT) 
+
+install:	build
+
+build:		first archtst installit
+
+stripit:		FRC
+		-set -x;for i in $(OBJECT); do \
+			(cd $$i/mc68; $(MAKE) $(MAKE_ARGS) stripit); done
+
+lint:		archtst FRC
+		-set -x;for i in $(OBJECT); do \
+		    (cd $$i/mc68; echo DIRECTORY: $$i; $(MAKE) $(MAKE_ARGS) $(LARGS) lint); done
+		
+$(OBJECT): 	archtst FRC
+		cd $@/mc68; $(MAKE) $(MAKE_ARGS) build
+archtst:	archtst.c
+		cc -O archtst.c -o archtst $(EXTRACFLAGS)
+installit:
+		-set -x;for i in $(OBJECT); do \
+			(cd $$i/mc68; $(MAKE) $(MAKE_ARGS) install); done
+clean:		archtst
+		-set -x;for i in $(OBJECT); do \
+			(cd $$i/mc68; $(MAKE) $(MAKE_ARGS) clobber); done
+		-rm -f archtst
+
+first:
+		-mkdir $(BINDIR)
+		-chmod $(MODE755) $(BINDIR)
+		-mkdir $(LIBDIR)
+		-chmod $(MODE755) $(LIBDIR)
+		-mkdir $(DMD)/include
+		-chmod $(MODE755) $(DMD)/include
+
+clobber:	clean
+
+FRC:

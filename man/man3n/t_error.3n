@@ -1,0 +1,61 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_ERROR1 3N "630 Network Development Package" "\&"
+.SH NAME
+t_error1 \- returns a TLI error message
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B char *t_error1()
+.PP
+.B int t_errno;
+.PP
+.B int errno;
+.PP
+.B extern char *t_errlist[];
+.PP
+.B extern int t_nerr;
+.SH DESCRIPTION
+.I t_error1
+returns the pointer to a message string which describes the last
+error encountered during a call to a transport function. Note that
+.I t_error1
+does not do any formatting nor any printing. These can be done by
+the calling application if necessary.
+.P
+.I t_errno
+is a macro defined in \fBdmdtiuser.h\fR, and one should not
+include its definition in the source code.
+.I t_errno
+is only set when an error occurs
+and is not cleared on successful calls.
+.P
+.I errno
+is a macro defined in \fBdmdtiuser.h\fR, and one should not
+include its definition in the source code.
+.I errno
+is set when an TSYSERR error for
+.I t_error
+occurs 
+and is not cleared on successful calls. 
+.P
+.I t_errlist
+is the array of TLI error messages. Instead of calling
+.I t_error1
+, one can get the same result by indexing 
+.I t_errno
+into the 
+.I t_errlist
+table. 
+.P
+.I t_nerr
+is the maximum index value for the
+.I t_errlist
+array.
+.Ee

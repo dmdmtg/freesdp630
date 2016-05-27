@@ -1,0 +1,44 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH FCNTL 3N "630 Network Development Package" "\&"
+.SH NAME
+fcntl \- switch the open mode of a transport endpoint
+.SH SYNOPSIS
+.B #include <dmdfcntl.h>
+.PP
+.B int fcntl (fd, F_SETFL, arg)
+.br
+.B int fd;
+.br
+.B int arg;
+.SH DESCRIPTION
+The 
+.I fcntl
+function with the \s-1F_SETFL\s+1 command provides a
+mechanism to change the opened transport endpoint,
+\fIfd\fR, between the
+synchronous and asynchronous modes.
+.PP
+To set the opened transport endpoint \fIfd\fR for synchronous operation:
+.RS
+.PP
+	fcntl(fd, F_SETFL, 0);
+.RE
+.PP
+To set the opened transport endpoint \fIfd\fR for asynchronous operation:
+.RS
+.PP
+	fcntl(fd, F_SETFL, O_NDELAY);
+.RE
+.SH SEE ALSO
+t_open(3N).
+
+.SH DIAGNOSTICS
+Upon successful completion, the value returned is a value other than -1.
+Otherwise, a value of -1 is returned.

@@ -1,0 +1,14 @@
+This is the AT&T 630 software development package with two pieces removed:
+the 68000 software generation system and the dmdpi debugger.  I am making
+this available in the hopes that someone will integrate it with the Gnu
+68000 C compiler with it.  If you are interested in doing some of the work,
+send me email and I will let you know who else has expressed interest.
+If you make any changes, please send them back to me and I will incorporate
+them in a distribution.
+
+This source code is copyrighted by AT&T but is distributable under the
+terms of the GNU General Public License.  See the 'COPYING' file for
+details.
+
+- Dave Dykstra, 3/25/94
+  David.W.Dykstra@att.com

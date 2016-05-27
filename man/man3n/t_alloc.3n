@@ -1,0 +1,160 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_ALLOC 3N "630 Network Development Package" "\&"
+.SH NAME
+t_alloc \- allocate a library structure
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B char *t_alloc(fd, struct_type, fields)
+.br
+.B int fd;
+.br
+.B int struct_type;
+.br
+.B int fields;
+.SH DESCRIPTION
+The
+.I t_alloc
+function dynamically allocates memory for the
+various transport function argument structures as specified below.
+This function will allocate memory for the specified structure, and
+will also allocate memory for buffers referenced by the structure.
+.PP
+The structure to allocate is specified by
+.IR struct_type ,
+and can be one of the following:
+.TP 17
+\s-1T_BIND\s+1
+struct t_bind
+.TP
+\s-1T_CALL\s+1
+struct t_call
+.TP
+\s-1T_OPTMGMT\s+1
+struct t_optmgmt
+.TP
+\s-1T_DIS\s+1
+struct t_discon
+.TP
+\s-1T_UNITDATA\s+1
+struct t_unitdata
+.TP
+\s-1T_UDERROR\s+1
+struct t_uderr
+.TP
+\s-1T_INFO\s+1
+struct t_info
+.PP
+where each of these structures may subsequently be
+used as an argument to one or more transport functions.
+.PP
+Each of the above structures, except
+\s-1T_INFO\s0,
+contains at least one field of type
+.IR "struct netbuf" .
+\f2netbuf\f1 is described in \f2intro\f1(3N).
+For each field of this type, the user may specify that
+the buffer for that field should be allocated as well.
+The
+.I fields
+argument specifies this option, where the argument is the
+bitwise-\s-1OR\s+1 of any of the following:
+.TP 10
+\s-1T_ADDR\s+1
+The
+.I addr
+field of the
+.IR t_bind ,
+.IR t_call ,
+.IR t_unitdata ,
+or
+.I t_uderr
+structures.
+.TP
+\s-1T_OPT\s+1
+The
+.I opt
+field of the
+.IR t_optmgmt ,
+.IR t_call ,
+.IR t_unitdata ,
+or
+.I t_uderr
+structures.
+.TP
+\s-1T_UDATA\s+1
+The
+.I udata
+field of the
+.IR t_call ,
+.IR t_discon ,
+or
+.I t_unitdata
+structures.
+.TP
+\s-1T_ALL\s+1
+All relevant fields of the given structure.
+.PP
+For each field specified in
+.IR fields ,
+.I t_alloc
+will allocate memory for the buffer associated with the field,
+and initialize the
+.I buf
+pointer
+and
+.I maxlen
+[see \f2netbuf\f1 in \f2intro\f1(3N) for description of \f2buf\f1 and \f2maxlen\f1]
+field accordingly.
+The length of the buffer allocated will be based on the same size
+information that is returned to the user on
+.I t_open
+and
+.IR t_getinfo.
+Thus,
+.I fd
+must refer to the transport endpoint through which the newly
+allocated structure will be passed, so that the appropriate
+size information can be accessed.
+If the size value associated with any specified field is \-1 or \-2
+(see \f2t_open\f1 or \f2t_getinfo\f1),
+.I t_alloc
+will be unable to determine the size of the buffer to allocate and will fail,
+setting
+.I t_errno
+to
+.SM TSYSERR
+and
+.I errno
+to \s-1EINVAL\s+1.
+.PP
+Use of
+.I t_alloc
+to allocate structures will help ensure the compatibility of user
+programs with future releases of the transport interface.
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 15
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport
+endpoint.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+intro(3N), t_free(3N),
+t_getinfo(3N),
+t_open(3N).
+.SH DIAGNOSTICS
+On successful completion,
+.I t_alloc
+returns a pointer to the newly allocated structure.
+On failure, \s-1NULL\s+1 is returned.
+.Ee

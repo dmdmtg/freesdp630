@@ -1,0 +1,119 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_SNDUDATA 3N "630 Network Development Package" "\&"
+.SH NAME
+t_sndudata \- send a data unit
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_sndudata(fd, unitdata)
+.br
+.B int fd;
+.br
+.B struct t_unitdata *unitdata;
+.SH DESCRIPTION
+This function is used
+in connectionless mode
+to send a data unit to another transport
+user.
+.I fd
+identifies the local transport endpoint through which data will be
+sent, and
+.I unitdata
+points to a \f2t_unitdata\f1 structure containing the following members:
+.PP
+.RS
+struct netbuf addr;
+.br
+struct netbuf opt;
+.br
+struct netbuf udata;
+.RE
+.PP
+\f2netbuf\f1 is described in \f2intro\f1(3N).
+In
+.IR unitdata ,
+.I addr
+specifies the protocol address of the destination user,
+.I opt
+identifies protocol-specific options that the user wants
+associated with this request, and
+.I udata
+specifies the user data to be sent.
+The user may choose not to specify what protocol
+options are associated with the transfer by setting the
+.I len
+field of
+.I opt
+to zero.
+In this case, the provider may use default options.
+.PP
+If the
+.I len
+field of
+.I udata
+is zero, no data unit will be passed to the transport provider;
+.I t_sndudata
+will not send zero-length data units.
+.PP
+By default,
+.I t_sndudata
+operates in synchronous mode and
+may wait if flow control restrictions prevent the data from
+being accepted by the local transport provider at the time
+the call is made.
+However, if
+\s-1O_NDELAY\s0
+is set (via
+.I t_open
+or
+.IR fcntl ),
+.I t_sndudata
+will execute in asynchronous mode and will fail
+under such conditions.
+.PP
+If
+.I t_sndudata
+is issued from an invalid state,
+or if the amount of data specified in
+.I udata
+exceeds the
+\s-1TSDU\s0
+size as returned by
+.I t_open
+or
+.IR t_getinfo ,
+the provider will generate an \s-1EPROTO\s0 protocol error.
+(See \s-1TSYSERR\s+1 below.)
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 18
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TFLOW]\s+1
+\s-1O_NDELAY\s0
+was set, but
+the flow control mechanism prevented the transport provider from
+accepting data at this time.
+.TP
+\s-1[TNOTSUPPORT]\s+1
+This function is not supported by the underlying transport
+provider.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+intro(3N), fcntl(3N), t_open(3N), t_rcvudata(3N),
+t_rcvuderr(3N).
+.SH DIAGNOSTICS
+.I t_sndudata
+returns 0 on successful completion and \-1 on failure
+\f2t_errno\f1 is set to indicate the error.
+.Ee

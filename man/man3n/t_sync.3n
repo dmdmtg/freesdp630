@@ -1,0 +1,83 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_SYNC 3N "630 Network Development Package" "\&"
+.SH NAME
+t_sync \- synchronize transport library
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_sync(fd)
+.br
+.B int fd;
+.SH DESCRIPTION
+For the transport endpoint specified by
+.IR fd ,
+.I t_sync
+synchronizes the data structures managed by the transport library
+with information from the underlying transport provider.
+This function allows two cooperating processes to synchronize their
+interaction with a transport provider.
+.PP
+It is important to remember that the transport provider treats
+all users of a transport endpoint as a single user.
+If multiple processes are using the same endpoint, they should
+coordinate their activities so as not to violate the state of the
+provider.
+.I t_sync
+returns the current state of the provider to the user, thereby
+enabling the user to verify the state before taking further
+action.
+This coordination is only valid among cooperating processes;
+it is possible that a process or an incoming event could change the provider's state
+.I after
+a
+.I t_sync
+is issued.
+.PP
+If the provider is undergoing a state transition when
+.I t_sync
+is called, the function will fail.
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 19
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TSTATECHNG]\s+1
+The transport provider is undergoing a state change.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH DIAGNOSTICS
+.I t_sync
+returns the state of the transport provider on successful
+completion and -1 on failure and \f2t_errno\f1 is set to indicate the error.
+The state returned may be one of the following:
+.TP 19
+\s-1T_UNBND\s+1
+unbound
+.TP
+\s-1T_IDLE\s+1
+idle
+.TP
+\s-1T_OUTCON\s+1
+outgoing connection pending
+.TP
+\s-1T_INCON\s+1
+incoming connection pending
+.TP
+\s-1T_DATAXFER\s+1
+data transfer
+.TP
+\s-1T_OUTREL\s+1
+outgoing orderly release (waiting for an orderly release indication)
+.TP
+\s-1T_INREL\s+1
+incoming orderly release (waiting for an orderly release request)
+.Ee

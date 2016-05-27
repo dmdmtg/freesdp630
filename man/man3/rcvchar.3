@@ -1,0 +1,114 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH RCVCHAR 3R "630 Network Development Package" "\&"
+.XE "rcvchar()"
+.XE "rcvnchars()"
+.SH NAME
+rcvchar, rcvnchars \- receive characters from host
+.SH SYNOPSIS
+.ft B
+int rcvchar ( )
+.sp
+int rcvnchars (n, buf)
+.br
+int n;
+.br
+char \(**buf;
+.SH DESCRIPTION
+The
+.I rcvchar
+function
+returns the next character received from the host.
+.PP
+The
+.I rcvnchars
+function places up to
+.I n
+characters from the host into the buffer
+.I buf .
+.I Rcvnchars
+will place less than
+.I n
+characters in
+.I buf
+if
+.I n
+characters are not currently available. The return value
+of the function is
+the number of characters placed into
+.I buf .
+.I Rcvnchars
+is more efficient than
+.I rcvchar
+when receiving large quantities of data. This is especially important
+when transferring data over a high speed network because this
+extra efficiency can improve overall throughput.
+.PP
+If there are no characters available, both
+.I rcvchar
+and
+.I rcvnchars
+return -1.
+Since local programs have no host connection, a call to
+.I rcvchar
+or
+.I rcvnchars
+by a local program will always return -1.
+.SH EXAMPLE
+The following program is a very simple terminal emulator.
+.PP
+.RS 3
+.nf
+.ft CW
+#include <dmd.h>
+
+main()
+{
+	int c;
+
+	request(RCV);
+	for(;;) {
+		wait(RCV);
+		while( (c=rcvchar()) != -1 )
+			lputchar(c);
+	}
+}
+.ft R
+.fi
+.RE
+.PP
+The following code fragment efficiently processes groups of
+up to 100 characters at a time:
+.PP
+.RS 3
+.nf
+.ft CW
+#include <dmd.h>
+
+char buf[100];
+
+main()
+{
+	int count;
+
+	request(RCV);
+	for(;;) {
+		wait(RCV);
+		while( (count = rcvnchars(100, buf)) != -1 ) {
+			/* process count number of characters */
+			process(count, buf);
+		}
+	}
+}
+.ft R
+.fi
+.RE
+.SH SEE ALSO
+local(3R), resources(3R), sendchar(3R) in the 630 MTG Software
+Reference Manual

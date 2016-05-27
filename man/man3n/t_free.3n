@@ -1,0 +1,101 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+'\"macro stdmacro
+.TH T_FREE 3N "630 Network Development Package" "\&"
+.SH NAME
+t_free \- free a library structure
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_free(ptr, struct_type)
+.br
+.B char *ptr;
+.br
+.B int struct_type;
+.SH DESCRIPTION
+The
+.I t_free
+function frees memory previously allocated by
+.IR t_alloc .
+This function will free memory for the specified structure, and
+will also free memory for buffers referenced by the structure.
+.PP
+.I ptr
+points to one of the six structure types described for
+.IR t_alloc ,
+and
+.I struct_type
+identifies the type of that structure which can be one
+of the following:
+.TP 17
+\s-1T_BIND\s+1
+struct t_bind
+.TP
+\s-1T_CALL\s+1
+struct t_call
+.TP
+\s-1T_OPTMGMT\s+1
+struct t_optmgmt
+.TP
+\s-1T_DIS\s+1
+struct t_discon
+.TP
+\s-1T_UNITDATA\s+1
+struct t_unitdata
+.TP
+\s-1T_UDERROR\s+1
+struct t_uderr
+.TP
+\s-1T_INFO\s+1
+struct t_info
+.PP
+where each of these structures is used as an argument to one or
+more transport functions.
+.PP
+.I t_free
+will check the
+.IR addr ,
+.IR opt ,
+and
+.I udata
+fields of the given structure (as appropriate), and free the
+buffers pointed to by the
+.I buf
+field of the
+.I netbuf
+[see \f2intro\f1(3N)] structure.
+If
+.I buf
+is \s-1NULL\s+1,
+.I t_free
+will not attempt to free memory.
+After all buffers are freed,
+.I t_free
+will free the memory associated with the structure pointed to by
+.IR ptr .
+.PP
+Undefined results will occur if
+.I ptr
+or any of the
+.I buf
+pointers points to a block of memory that was not previously
+allocated by
+.IR t_alloc .
+.P
+On failure, \f2t_errno\f1 may be set to the following:
+.TP 15
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+intro(3N), t_alloc(3N).
+.SH DIAGNOSTICS
+.I t_free
+returns 0 on success and \-1 on failure and
+\f2t_errno\f1 is set to indicate the error.
+.Ee

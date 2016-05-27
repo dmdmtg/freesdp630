@@ -1,0 +1,14 @@
+These files are part of the 630 software development package to provide
+    minimal functionality to users of 5620s without requiring the users to
+    have the 5620 software development package.
+
+lsys.8;7;3 in this directory is the "patch" file to make a 5620 with 1.1 roms
+    behave like one with 2.0 roms.  
+set_enc.j is a short initial patch file that makes a 1.1 5620 understand
+    encoding mode.
+The source for both of these files has been lost.
+The byte order of the COFF files needs to be reversed for little endian hosts.
+    It's ok to use mc68conv instead of m32conv; they both recognize the
+    bellmac-32 COFF file magic number.
+
+- Dave Dykstra, 7/6/93

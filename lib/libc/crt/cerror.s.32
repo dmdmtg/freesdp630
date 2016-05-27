@@ -1,0 +1,12 @@
+#ident	"@(#)libc-mc68:crt/cerror.s.32	2.3.1.1"
+# C return sequence which
+# sets errno, returns -1.
+#
+	global cerror
+	comm errno,4
+
+cerror:
+	mov.l	%d0,errno
+	mov.l	&-1,%d0
+	unlk	%fp
+	rts

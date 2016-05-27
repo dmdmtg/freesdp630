@@ -1,0 +1,47 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH T_UNBIND 3N "630 Network Development Package" "\&"
+.SH NAME
+t_unbind \- disable a transport endpoint
+.SH SYNOPSIS
+.B #include <dmdtiuser.h>
+.PP
+.B int t_unbind(fd)
+.br
+.B int fd;
+.SH DESCRIPTION
+The
+.I t_unbind
+function disables the transport endpoint specified by
+.IR fd 
+which was previously bound by \f2t_bind\f1(3N).
+On completion of this call, no further data or events
+destined for this transport
+endpoint will be accepted by the transport provider.
+.P
+On failure, \f2t_errno\f1 may be set to one of the following:
+.TP 15
+\s-1[TBADF]\s+1
+The specified file descriptor does not refer to a transport endpoint.
+.TP
+\s-1[TOUTSTATE]\s+1
+The function was issued in the wrong sequence.
+.TP
+\s-1[TLOOK]\s+1
+An asynchronous event has occurred on this transport endpoint.
+.TP
+\s-1[TSYSERR]\s+1
+A system error has occurred during execution of this function.
+.SH SEE ALSO
+t_bind(3N).
+.SH DIAGNOSTICS
+.I t_unbind
+returns 0 on success and \-1 on failure and
+\f2t_errno\f1 is set to indicate the error.
+.Ee

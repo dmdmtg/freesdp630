@@ -1,0 +1,101 @@
+.\"       Copyright (c) 1989 AT&T   
+.\"       All Rights Reserved       
+.\"
+.\"       THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF AT&T   
+.\"       The copyright notice above does not evidence any     
+.\"       actual or intended publication of such source code.  
+.\"
+.\"
+.TH FLOWCONTROL 3N "630 Network Development Package" "\&"
+.SH NAME
+flowcontrol \- disable and enable network xt flow control
+.SH SYNOPSIS
+.ft B
+void flowcontrol (n)
+.br
+int n;
+.ft R
+.SH DESCRIPTION
+The
+.I flowcontrol
+function is used with standard 630's I/O functions (such as
+\fIsendchar\fR, \fIsendnchars\fR, \fIrcvchar\fR and \fIrcvnchars\fR)
+to increase the data transfer 
+throughput for applications which transfer large quantities of
+data in the
+.I xt/layers
+environment running over a high speed network.
+.PP
+When running over RS-232C, the xt protocol used by the layers
+environment provides error detection and correction by breaking data
+into packets with CRC checksums, etc.. This error
+correcting protocol is redundant in a networking environment such as
+StarLAN since the underlying network already provides error
+correction. Furthermore, this redundant error correcting protocol
+severely hurts throughput when running over a high speed network.
+UNIX host xt drivers which support the
+.I "network xt"
+protocol solve this problem by using a simplified
+protocol when running in a networking environment.
+.PP
+This network xt protocol greatly improves throughput of xt/layers over
+high speed networks. The default network xt operating mode, however,
+does not yield the highest possible performance. This is because the
+network xt protocol will, by default, limit the number of characters
+sent to a 630 window at one time. This simple flow control is
+necessary for 630 application programs such as terminal emulators
+which may not always read incoming data quickly and regularly. The
+630 default terminal emulator windowproc needs flow control because
+a user can press scroll lock on the keyboard while the window is
+receiving data. When scroll lock is pressed, windowproc must wait
+until scroll lock is removed before it can process additional
+characters which have been sent from the host.
+The protocol must therefore
+guarantee that a window running windowproc never receives more
+characters than can be stored in internal 630 firmware buffers.
+Otherwise, when scroll lock is pressed, internal buffers in the
+terminal will back up and input to all windows will be frozen.
+.PP
+On the other hand, an application such as the 630 firmware load
+process does not need this flow control. The load process is the
+firmware resident application which turns the mouse cursor into a
+coffee cup, accepts characters being sent from the host by the
+.I dmdld
+program, transfers the characters into 630 memory, and paints the
+screen to show progress of the download. The load process always
+reads incoming data quickly, regularly and without blocking, so
+flow control is therefore not needed. Furthermore,
+eliminating this flow control about doubles the speed of downloads.
+.PP
+The network xt protocol will always initially have flow control
+enabled when an application program starts executing. Applications
+can turn off flow control for their window by calling the
+.I flowcontrol
+function with an argument of 0. Flow control can be re-enabled
+by a call to
+.I flowcontrol
+with an argument of 1. It is not necessary
+for applications to re-enable flow control before exiting because
+630 firmware does that automatically.
+.P
+Note that the
+.I flowcontrol
+function will only have an effect when
+running xt/layers in a networking environment. When running xt/layers over
+RS-232C, or when running in a non-layers environment, the call to
+.I flowcontrol
+is harmless but ignored. The call to
+.I flowcontrol
+is also
+harmless and ignored if executed by an application downloaded into a
+terminal with old 630 firmware that did not support networking.
+.SH SEE ALSO
+dmdld(1) in the \fI630 MTG Software Reference Manual\fR
+.br
+layers(1) in the \fIUNIX System V User's Reference Manual\fR
+.br
+sendchar (3R) in the \fI630 MTG Software Reference Manual\fR
+.br
+rcvchar (3R) in the \fI630 MTG Software Reference Manual\fR
+.br
+xtproto(5) in the \fIUNIX System V System Administrator's Reference Manual\fR

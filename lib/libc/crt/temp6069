@@ -1,0 +1,132 @@
+	file	"addmag%%.c"
+	data	1
+	lcomm	zero,4
+	even
+infinity:
+	long	0
+	text
+	global	fp_addmag%%
+	set	S%1,-24
+	set	T%1,-28
+	set	F%1,-32
+	set	M%1,0x00fc
+fp_addmag%%:
+	link	%fp,&-32
+	movm.l	&0x00fc,S%1(%fp)
+	mov.w	8(%fp),%d0
+	lsr.w	&15,%d0
+	and.w	&1,%d0
+	mov.w	%d0,%d1
+	lsl.w	&15,%d1
+	and.w	&32768,%d1
+	and.w	&-32769,-4+S%1(%fp)
+	or.w	%d1,-4+S%1(%fp)
+	mov.w	8(%fp),%d0
+	lsr.w	&7,%d0
+	and.w	&255,%d0
+	mov.w	12(%fp),%d1
+	lsr.w	&7,%d1
+	and.w	&255,%d1
+	cmp.w	%d0,%d1
+	bls.b	L%25
+	mov.w	8(%fp),%d0
+	lsr.w	&7,%d0
+	and.w	&255,%d0
+	mov.w	%d0,%d2
+	mov.l	8(%fp),%d0
+	and.l	&8388607,%d0
+	mov.l	%d0,%d4
+	mov.w	12(%fp),%d0
+	lsr.w	&7,%d0
+	and.w	&255,%d0
+	mov.w	%d0,%d3
+	mov.l	12(%fp),%d0
+	br.b	L%%1
+L%25:
+	mov.w	12(%fp),%d0
+	lsr.w	&7,%d0
+	and.w	&255,%d0
+	mov.w	%d0,%d2
+	mov.l	12(%fp),%d0
+	and.l	&8388607,%d0
+	mov.l	%d0,%d4
+	mov.w	8(%fp),%d0
+	lsr.w	&7,%d0
+	and.w	&255,%d0
+	mov.w	%d0,%d3
+	mov.l	8(%fp),%d0
+L%%1:
+	and.l	&8388607,%d0
+	mov.l	%d0,%d5
+	mov.l	%d4,%d0
+	or.l	&8388608,%d0
+	lsl.l	&2,%d0
+	mov.l	%d0,%d4
+	mov.l	%d5,%d0
+	or.l	&8388608,%d0
+	lsl.l	&2,%d0
+	mov.l	%d0,%d5
+	mov.w	%d2,%d0
+	sub.w	%d3,%d0
+	mov.w	%d0,%d7
+	cmp.w	%d7,&25
+	bgt.b	L%28
+	tst.w	%d3
+	bne.b	L%27
+L%28:
+	mov.w	%d2,%d0
+	lsl.w	&7,%d0
+	and.w	&32640,%d0
+	and.w	&-32641,-4+S%1(%fp)
+	or.w	%d0,-4+S%1(%fp)
+	mov.l	%d4,%d0
+	br	L%%2
+L%27:
+	mov.l	%d5,%d0
+	asr.l	%d7,%d0
+	add.l	%d4,%d0
+	mov.l	%d0,%d6
+	mov.l	%d6,%d0
+	and.l	&67108864,%d0
+	beq.b	L%29
+	add.w	&1,%d2
+	asr.l	&1,%d6
+L%29:
+	btst	&1,%d6
+	beq.b	L%30
+	add.l	&4,%d6
+	mov.l	%d6,%d0
+	and.l	&67108864,%d0
+	beq.b	L%31
+	add.w	&1,%d2
+	asr.l	&1,%d6
+L%31:
+L%30:
+	cmp.w	%d2,&254
+	ble.b	L%32
+	mov.w	infinity,%d0
+	lsr.w	&7,%d0
+	and.w	&255,%d0
+	mov.w	%d0,%d2
+	mov.l	infinity,%d0
+	and.l	&8388607,%d0
+	lsl.l	&2,%d0
+	mov.l	%d0,%d6
+L%32:
+	mov.w	%d2,%d0
+	lsl.w	&7,%d0
+	and.w	&32640,%d0
+	and.w	&-32641,-4+S%1(%fp)
+	or.w	%d0,-4+S%1(%fp)
+	mov.l	%d6,%d0
+L%%2:
+	asr.l	&2,%d0
+	and.l	&-8388609,%d0
+	mov.l	%d0,%d1
+	and.l	&8388607,%d1
+	and.l	&-8388608,-4+S%1(%fp)
+	or.l	%d1,-4+S%1(%fp)
+	mov.l	-4+S%1(%fp),%d0
+	movm.l	S%1(%fp),&0x00fc
+	unlk	%fp
+	rts
