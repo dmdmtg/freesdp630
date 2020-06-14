@@ -14,7 +14,7 @@ OBJ=dmdld.o proto.o pcheck.o io.o reloc.o shakecode.o ver.o
 
 PRODUCTS = dmdld
 INSTALL=$(DMDBIN)/dmdld
-CLEAN = $(OBJ) shake.o shakecode.c
+CLEAN = $(OBJ) shake.o
 CLOBBER=$(PRODUCTS)
 
 include ../stand.targ
