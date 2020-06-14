@@ -16,7 +16,7 @@ include stand.defs
 # EXTRACFLAGS is for any extra cc options for compiling and linking for
 #  a particular unix platform
 #
-EXTRACFLAGS=-O
+EXTRACFLAGS="-O -w"
 # Use the following for Solaris
 # EXTRACFLAGS=-O -DUSE_SYSVR4LIKE -lsocket -lnsl
 # Use the following for HP-PA
