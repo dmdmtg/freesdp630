@@ -151,6 +151,11 @@ main(argc, argv)
 	ld   = makename(fst,BINDIR,prefix,NAMEld);	/* loader */
 	crt0 = makename(fst,LIBDIR,"",NAMEcrt0);/* run-time start-up */
 
+	if (0 != access(ccom,2)) {
+	    error("cannot access compiler: %s", ccom);
+	    exit(1);
+	}
+
 	/* ld currently adds upto 5 args; 10 is room to spare */
 	/* I upped it anyway -- rob */
 	av = (char **)calloc(argc+20, sizeof (char **));
