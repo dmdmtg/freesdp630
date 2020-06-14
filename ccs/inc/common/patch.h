@@ -1,22 +1,28 @@
 /* #ident	"@(#)sgs-inc:common/patch.h	1.3.1.1" */
 
+#if __STDC__
+#include <stdint.h>
+#else
+typedef long int32_t;
+#endif
+
 struct plist
 {
-	long blk_cnt;			/* the number of blocks */
+	int32_t blk_cnt;			/* the number of blocks */
 	union pentry
 	{
 		struct
 		{
-			long		blk_addr;	/* block address    */
-			long		blk_size;	/* size of block    */
+			int32_t		blk_addr;	/* block address    */
+			int32_t		blk_size;	/* size of block    */
 			unsigned short	blk_scnum;	/* section of block */
 			char		blk_type;	/* type of block    */
 			char		blk_pad;	/* padding	    */
 		} type01;				/* FREE or OLD FCN  */
 		struct
 		{
-			long		blk_addr;	/* block address    */
-			long		blk_ndx;	/* fcn tv index     */
+			int32_t		blk_addr;	/* block address    */
+			int32_t		blk_ndx;	/* fcn tv index     */
 			unsigned short	blk_scnum;	/* section of block */
 			char		blk_type;	/* type of block    */
 			char		blk_size;	/* size of block    */

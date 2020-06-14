@@ -7,6 +7,12 @@
 
 /* #ident	"@(#)sgs-inc:common/ar.h	1.3" */
 
+#if __STDC__
+#include <stdint.h>
+#else
+typedef long int32_t;
+#endif
+
 #if PORTAR
 /*		COMMON ARCHIVE FORMAT
 *
@@ -87,11 +93,11 @@ struct	arf_hdr {			/* archive file member header */
 struct ar_hdr
 {
 	char	ar_name[14];
-	long	ar_date;
+	int32_t	ar_date;
 	char	ar_uid;
 	char	ar_gid;
 	int	ar_mode;
-	long	ar_size;
+	int32_t	ar_size;
 };
 
 #endif

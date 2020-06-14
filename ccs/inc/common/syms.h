@@ -12,6 +12,12 @@
  * static char ID_symsh[] = "@(#) syms.h: 1.5 2/24/83";
  */
 
+#if __STDC__
+#include <stdint.h>
+#else
+typedef long int32_t;
+#endif
+
 /*		Storage Classes are defined in storclass.h  */
 #include "storclass.h"
 
@@ -30,12 +36,12 @@ struct syment
 		char		_n_name[SYMNMLEN];	/* old COFF version */
 		struct
 		{
-			long	_n_zeroes;	/* new == 0 */
-			long	_n_offset;	/* offset into string table */
+			int32_t	_n_zeroes;	/* new == 0 */
+			int32_t	_n_offset;	/* offset into string table */
 		} _n_n;
 		char		*_n_nptr[2];	/* allows for overlaying */
 	} _n;
-	long			n_value;	/* value of symbol */
+	int32_t			n_value;	/* value of symbol */
 	short			n_scnum;	/* section number */
 	unsigned short		n_type;		/* type and derived type */
 	char			n_sclass;	/* storage class */
@@ -145,7 +151,7 @@ union auxent
 {
 	struct
 	{
-		long		x_tagndx;	/* str, un, or enum tag indx */
+		int32_t		x_tagndx;	/* str, un, or enum tag indx */
 		union
 		{
 			struct
@@ -153,14 +159,14 @@ union auxent
 				unsigned short	x_lnno;	/* declaration line number */
 				unsigned short	x_size;	/* str, union, array size */
 			} x_lnsz;
-			long	x_fsize;	/* size of function */
+			int32_t	x_fsize;	/* size of function */
 		} x_misc;
 		union
 		{
 			struct			/* if ISFCN, tag, or .bb */
 			{
-				long	x_lnnoptr;	/* ptr to fcn line # */
-				long	x_endndx;	/* entry ndx past block end */
+				int32_t	x_lnnoptr;	/* ptr to fcn line # */
+				int32_t	x_endndx;	/* entry ndx past block end */
 			} 	x_fcn;
 			struct			/* if ISARY, up to 4 dimen. */
 			{
@@ -175,14 +181,14 @@ union auxent
 	} 	x_file;
         struct
         {
-                long    x_scnlen;          /* section length */
+                int32_t		x_scnlen;  /* section length */
                 unsigned short  x_nreloc;  /* number of relocation entries */
                 unsigned short  x_nlinno;  /* number of line numbers */
         }       x_scn;
 
 	struct
 	{
-		long		x_tvfill;	/* tv fill value */
+		int32_t		x_tvfill;	/* tv fill value */
 		unsigned short	x_tvlen;	/* length of .tv */
 		unsigned short	x_tvran[2];	/* tv range */
 	}	x_tv;	/* info about .tv section (in auxent of symbol .tv)) */

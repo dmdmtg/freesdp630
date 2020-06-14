@@ -12,6 +12,12 @@
  * static char ID_lnumh[] = "@(#) linenum.h: 1.1 1/7/82";
  */
 
+#if __STDC__
+#include <stdint.h>
+#else
+typedef long int32_t;
+#endif
+
 /*  There is one line number entry for every 
     "breakpointable" source line in a section.
     Line numbers are grouped on a per function
@@ -24,9 +30,9 @@ struct lineno
 {
 	union
 	{
-		long	l_symndx ;	/* sym. table index of function name
+		int32_t	l_symndx ;	/* sym. table index of function name
 						iff l_lnno == 0      */
-		long	l_paddr ;	/* (physical) address of line number */
+		int32_t	l_paddr ;	/* (physical) address of line number */
 	}		l_addr ;
 	unsigned short	l_lnno ;	/* line number */
 } ;

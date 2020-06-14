@@ -14,11 +14,17 @@
 /*
  */
 
+#if __STDC__
+#include <stdint.h>
+#else
+typedef long int32_t;
+#endif
+
 #ifndef LDFILE
 struct	ldfile {
 	int	_fnum_;		/* so each instance of an LDFILE is unique */
 	FILE	*ioptr;		/* system I/O pointer value */
-	long	offset;		/* absolute offset to the start of the file */
+	int32_t	offset;		/* absolute offset to the start of the file */
 	FILHDR	header;		/* the file header of the opened file */
 	unsigned short	type;		/* indicator of the type of the file */
 };
@@ -69,11 +75,11 @@ struct	ldfile {
 typedef struct
 {
 	char ar_name[16];
-	long ar_date;
+	int32_t ar_date;
 	int ar_uid;
 	int ar_gid;
-	long ar_mode;
-	long ar_size;
+	int32_t ar_mode;
+	int32_t ar_size;
 } archdr;
 
 #define	ARCHDR	archdr
