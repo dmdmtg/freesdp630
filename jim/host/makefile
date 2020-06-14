@@ -51,7 +51,11 @@ jim.o:	jim.c
 jim.o:	jim.h
 jim.o:	file.h
 jim.o:	msgs.h
-	$(CC) $(CFLAGS) -DDEFDMD=\"$(DEFDMD)\" -c jim.c
+	@STDARG=""; set -x; \
+	echo '#include <stdarg.h>' >t.c; \
+	if $(CC) $(CFLAGS) -c t.c; then STDARG=-DUSE_STDARG; fi; \
+	rm -f t.[co]; \
+	$(CC) $(CFLAGS) -DDEFDMD=\"$(DEFDMD)\" $$STDARG -c jim.c
 
 msgs.o:	msgs.c
 msgs.o:	jim.h
