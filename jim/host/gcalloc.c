@@ -20,7 +20,7 @@ static char _2Vsccsid[]="@(#)gcalloc.c	1.1.1.1	(5/8/87)";
  *	(e.g. base in a Bitmap), to be updated when necessary.
  *	The return values  for the allocators are the new address,
  *	but since they update *where, the value isn't too useful.
- *	They panic if they fail.
+ *	They jimpanic if they fail.
  */
 
 /*
@@ -62,7 +62,7 @@ gcalloc(nbytes, where)
 {
 	register long *p;
 	register Ulong nl;
-if(nextlong>endarena)panic("nextlong>endarena");
+if(nextlong>endarena)jimpanic("nextlong>endarena");
 	if((long)where&1)	/* head off a possible disaster */
 		return 0;
 	if(startarena==0){
@@ -126,7 +126,7 @@ shiftgcarena(nl)
 	register long *p;
 	if(startarena==0)
 		return;
-	bcopy((char *)startarena, (char *)nextlong, (char *)(startarena+nl), -1);
+	jimbcopy((char *)startarena, (char *)nextlong, (char *)(startarena+nl), -1);
 	nextlong+=nl;
 	startarena+=nl;
 	endarena+=nl;
@@ -141,7 +141,7 @@ gcfree(cp)
 	register long *p=(long *)cp;
 	p-=HEADERSIZE;
 	if(p<startarena || nextlong<=p)
-		panic("gcfree");
+		jimpanic("gcfree");
 	hp->ival|=1;
 }
 static
@@ -170,7 +170,7 @@ compact()
 	}
 	nextlong=w;
 }
-bcopy(s1, s2, d, dir)
+jimbcopy(s1, s2, d, dir)
 	register char *s1, *s2;
 	register char *d;
 	int dir;
@@ -194,9 +194,9 @@ gcchk()
 	for(p=startarena; p<nextlong; p+=hp->nlongs){
 		if((hp->ival&1)==0){
 			if(hp->pval==0 || ((long *)hp->pval>=startarena && ((int)(hp->pval)&0x70000000)==0))
-				panic("gcchk 1");
+				jimpanic("gcchk 1");
 			if(p+hp->nlongs>nextlong)
-				panic("gcchk 2");
+				jimpanic("gcchk 2");
 		}
 	}
 }

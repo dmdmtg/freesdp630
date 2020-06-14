@@ -83,7 +83,7 @@ relblock(b)
 	register Block *b;
 {
 	if(b->bnum==0)
-		panic("relblock");
+		jimpanic("relblock");
 	if(nfree<MAXFREE)
 		freelist[nfree++]=b->bnum;
 }
@@ -205,7 +205,7 @@ Fwrite(f, fname, fd)
 	Fputblock(f);
 	if(fd==0){
 		if(stat(s, &statbuf)!=0){
-			dprintf("new file; ");
+			jimdprintf("new file; ");
 			issame=TRUE;
 		}else if(f->date==DUBIOUS){
 			f->date=statbuf.st_mtime;
@@ -228,7 +228,7 @@ Fwrite(f, fname, fd)
 		Write(s, fd, buf, (long)f->block[b].nbytes);
 	}
 	if(buf[f->block[b-1].nbytes-1]!='\n' && length(f)>0)
-		dprintf("last char not newline; ");
+		jimdprintf("last char not newline; ");
 	if(issame){
 		fstat(fd, &statbuf);
 		f->date=statbuf.st_mtime;
@@ -283,10 +283,10 @@ Ffree(f)
 	Fclose(f);
 	fileid[f->id]=0;
 	if(f==file)
-		panic("Ffree 1");
+		jimpanic("Ffree 1");
 	for(g=file; g->next!=f; g=g->next)
 		if(g->next==0)
-			panic("Ffree 2");
+			jimpanic("Ffree 2");
 	g->next=f->next;
 	free((char *)f);
 }

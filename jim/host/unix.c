@@ -37,7 +37,7 @@ Unix(f, type, unixcmd, wholefile, display)
 		ntosend=length(f);
 	}else{
 		if(f->selloc>length(f) || f->selloc+f->nsel>length(f))
-			panic("in Unix(): can't happen");
+			jimpanic("in Unix(): can't happen");
 		posn=f->selloc;
 		ntosend=f->nsel;
 	}
@@ -118,7 +118,7 @@ Unix(f, type, unixcmd, wholefile, display)
 					f->selloc=f->origin=0;
 				f->nsel=nbytes;
 			}else
-				dprintf("status!=0; original not deleted.\n", (char *)0);
+				jimdprintf("status!=0; original not deleted.\n", (char *)0);
 		}
 		checkerrs();
 		if(nbytes)
@@ -147,13 +147,13 @@ checkerrs(){
 					if(*p=='\n')
 						break;
 				*p=0;
-				dprintf("%s", buf);
+				jimdprintf("%s", buf);
 				if(p-buf < statb.st_size-1)	/* -1 for newline */
-					dprintf("...");
+					jimdprintf("...");
 			}
 			close(f);
 		}
-		dprintf("\n");
+		jimdprintf("\n");
 	} else
 		unlink(errfile);
 }
@@ -192,11 +192,11 @@ getname(s)
 	}
 	strfree(&text);
 	if(new){
-		dprintf("grabbing %s\n", charstar(&new->name));
+		jimdprintf("grabbing %s\n", charstar(&new->name));
 		return new;
 	}
 	if(old)
-		dprintf("grabbing %s\n", charstar(&old->name));
+		jimdprintf("grabbing %s\n", charstar(&old->name));
 	return old;
 }
 nextname(as, str, np)

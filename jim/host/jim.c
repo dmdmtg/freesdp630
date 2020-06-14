@@ -18,7 +18,12 @@ static char _2Vsccsid[]="@(#)jim.c	1.1.1.12	(6/17/87)";
 #include <signal.h>
 #include <setjmp.h>
 #include <errno.h>
+#ifdef USE_STDARG
+#include <stdarg.h>
+extern jimdprintf(char *a, ...);
+#else
 #include <varargs.h>
+#endif
 
 #include <sys/jioctl.h>
 #include "quiet.h"
@@ -283,7 +288,7 @@ char *argv[];
 	i = MAXFILES-1 + optind;
 	if (argc > i) {
 		argc = i; 
-		dprintf("only %d files open\n", MAXFILES-1);
+		jimdprintf("only %d files open\n", MAXFILES-1);
 	}
 
 	for (; optind<argc; optind++) {
@@ -293,7 +298,7 @@ char *argv[];
 		unmodified(Fcreat(f, jerqname(f, argv[optind])));
 	}
 	if(f=file[0].next){	/* assignment = */
-		dprintf("grabbing %s\n", charstar(&f->name));
+		jimdprintf("grabbing %s\n", charstar(&f->name));
 		send(f->id, O_SWEEP, 0, 0, (char *)0);
 	}
 
@@ -369,7 +374,7 @@ message()
 		buffer.n=posn;
 		do{
 			rcv();
-			bcopy(m.data, m.data+m.nbytes, buffer.s+m.posn, 1);
+			jimbcopy(m.data, m.data+m.nbytes, buffer.s+m.posn, 1);
 		}while(m.nbytes);
 		break;
 	case O_DIAGNOSTIC:	/* end of input */
@@ -383,7 +388,7 @@ message()
 		/* posn: -2: look for text; 0: prev search; 1: prev unix */
 		if(posn<0){
 			if(f->nsel==0 && buffer.n==0)
-				dprintf("no pattern selected\n");
+				jimdprintf("no pattern selected\n");
 			else{
 				extern mustcompile;
 				if(f->nsel==0)
@@ -395,7 +400,7 @@ message()
 				if(execute(f, '/'))
 					moveto(f, loc1, loc2);
 				else
-					dprintf("%s not found\n", charstar(f->nsel? &lookstring : &buffer));
+					jimdprintf("%s not found\n", charstar(f->nsel? &lookstring : &buffer));
 				mustcompile=TRUE;
 			}
 		}else if(posn==1 || searchdir==0)
@@ -404,7 +409,7 @@ message()
 			if(searchdir && execute(f, searchdir))
 				moveto(f, loc1, loc2);
 			else
-				dprintf("%s not found\n", pattern);
+				jimdprintf("%s not found\n", pattern);
 		}
 		send(0, O_DONE, 0, 0, (char *)0);
 		break;
@@ -544,15 +549,15 @@ commands(f)
 		if(*++p)
 			compile(p, TRUE);
 		else
-			dprintf("%c%s\n", c, pattern);
+			jimdprintf("%c%s\n", c, pattern);
 		send(0, O_SEARCH, 0, 0, (char *)0);
 		if(execute(f, searchdir=c))
 			moveto(f, loc1, loc2);
 		else
-			dprintf("%s not found\n", pattern);
+			jimdprintf("%s not found\n", pattern);
 		break;
 	case '=':
-		dprintf("%d\n", Fcountnl(f, f->selloc));
+		jimdprintf("%d\n", Fcountnl(f, f->selloc));
 		break;
 	case '*':
 		if((c=p[1])!='<' && c!='|' && c!='>')
@@ -566,7 +571,7 @@ commands(f)
 		if(*++p){
 			strncpy(unixcmd, p, CMDSIZE);
 		}else
-			dprintf("%c%s\n", c, unixcmd);
+			jimdprintf("%c%s\n", c, unixcmd);
 		send(0, O_SEARCH, 1, 0, (char *)0);
 		Unix(f, unixtype=c, unixcmd, wholefile, 1);
 		break;
@@ -637,7 +642,7 @@ commands(f)
 				modified(f);
 			}
 			strdupl(&f->name, fname);
-			dprintf("%c. %s\n", " '"[f->changed], fname);
+			jimdprintf("%c. %s\n", " '"[f->changed], fname);
 			checkifdups(f);
 			break;
 		}
@@ -666,7 +671,7 @@ commands(f)
 		if(f=getname(strcpy(fname, skipbl(p+1))))
 			send(f->id, O_SWEEP, 0, 0, (char *)0);
 		else
-			dprintf("no files\n");
+			jimdprintf("no files\n");
 		break;
 	case 'v':
 		mesg("jim version 3.0.0 - 5/87",FALSE);
@@ -685,7 +690,7 @@ commands(f)
 		/* fall through */
 	default:
 	Default:
-		dprintf("you typed: '%s'\n", DIAG->str.s);
+		jimdprintf("you typed: '%s'\n", DIAG->str.s);
 	}
 }
 checkifdups(f)
@@ -695,7 +700,7 @@ checkifdups(f)
 	for(g=file[0].next; g; g=g->next)
 		if(f!=g && f->name.n==g->name.n
 			&& strncmp(f->name.s, g->name.s, (int)f->name.n)==0)
-			dprintf("warning: %s already loaded\n", charstar(&f->name));
+			jimdprintf("warning: %s already loaded\n", charstar(&f->name));
 }
 writechanged()
 {
@@ -816,12 +821,12 @@ ioerr(s, t)
 	register char *s, *t;
 {
 	extern errno;
-	dprintf("ioerr (%s) on file %s: errno %d\n", s, t, errno);
+	jimdprintf("ioerr (%s) on file %s: errno %d\n", s, t, errno);
 }
 mesg(s, t)
 	register char *s, *t;
 {
-	dprintf(t? "%s %s\n": "%s\n", s, t);
+	jimdprintf(t? "%s %s\n": "%s\n", s, t);
 }
 sendstr(f, op, posn, d)
 	unsigned f;
@@ -838,9 +843,13 @@ sendstr(f, op, posn, d)
 	}while(n>0);
 }
 /*VARARGS1*/
-dprintf(a, va_alist)
+#ifdef USE_STDARG
+jimdprintf(char *a, ...)
+#else
+jimdprintf(a, va_alist)
 	char *a;
 	va_dcl
+#endif
 {
 	va_list args;
 	register s;
@@ -848,7 +857,11 @@ dprintf(a, va_alist)
 	char buf[BUFSIZ];
 	if(rescuing)
 		return;
+#ifdef USE_STDARG
+	va_start(args, a);
+#else
 	va_start(args);
+#endif
 	vsprintf(buf,a, args);
 	va_end(args);
 	sendstr(0, O_DIAGNOSTIC, 0, buf);
@@ -864,15 +877,15 @@ dprintf(a, va_alist)
 	junk.s=buf;
 	Finstext(DIAG, (long)DIAG->str.n, &junk);
 }
-panic(s)
+jimpanic(s)
 	char *s;
 {
-	sendstr(0, O_DIAGNOSTIC, 0, "panic: ");
+	sendstr(0, O_DIAGNOSTIC, 0, "jimpanic: ");
  	sendstr(0, O_DIAGNOSTIC, 0, s);
 #ifdef	ATT
 	sendstr(0, O_DIAGNOSTIC, 0, " (Your prayers have gone unanswered - call bgs @ SFx6258)");
 #else
-	sendstr(0, O_DIAGNOSTIC, 0, " (Jim panic - call DMD support)");
+	sendstr(0, O_DIAGNOSTIC, 0, " (Jim jimpanic - call DMD support)");
 #endif
 	abort();
 }

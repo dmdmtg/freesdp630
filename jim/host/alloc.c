@@ -80,7 +80,7 @@ free(cp)
 {
 	register long *p=(long *)cp;
 	if(p<=basep || nextp<=p)
-		panic("free");
+		jimpanic("free");
 	p-=HEADERSIZE;
 	hp->inext|=1;
 }

@@ -116,7 +116,7 @@ reerror(s)
 	char *s;
 {
 	mustcompile=TRUE;
-	dprintf("%s - ", compilepat);
+	jimdprintf("%s - ", compilepat);
 	error("RE error:", s);
 }
 pushand(b, e)

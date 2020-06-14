@@ -91,17 +91,17 @@ strinsert(p, q, p0)
 	register String *p, *q;
 	register Posn p0;
 {
-if(p0>p->n) panic("strinsert");
+if(p0>p->n) jimpanic("strinsert");
 	strinsure(p, (Ulong)(p->n+q->n));
-	bcopy(p->s+p0, p->s+p->n, p->s+p0+q->n, -1);
-	bcopy(q->s, q->s+q->n, p->s+p0, 1);
+	jimbcopy(p->s+p0, p->s+p->n, p->s+p0+q->n, -1);
+	jimbcopy(q->s, q->s+q->n, p->s+p0, 1);
 	p->n+=q->n;
 }
 strdelete(p, p1, p2)
 	register String *p;
 	register Posn p1, p2;
 {
-if(p1>=p->n || p2>p->n || p1>p2) panic("strdelete");
-	bcopy(p->s+p2, p->s+p->n, p->s+p1, 1);
+if(p1>=p->n || p2>p->n || p1>p2) jimpanic("strdelete");
+	jimbcopy(p->s+p2, p->s+p->n, p->s+p1, 1);
 	p->n-=(p2-p1);
 }
